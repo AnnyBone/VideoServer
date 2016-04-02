@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 #define WIN32_LEAN_AND_MEAN
@@ -47,17 +48,40 @@ int main (int argc, char** argv)
     #define xxnow() \
         (QueryPerformanceCounter (&ticks), (1e3*ticks.QuadPart/ticks_per_sec.QuadPart))
 
-    double target_period = 1e3/fps;
+    // setup grabber
+    HWND window = GetDesktopWindow ();
+    HDC window_dc = GetDC (window);
+    HDC memory_dc = CreateCompatibleDC (window_dc);
+    HBITMAP bitmap = CreateCompatibleBitmap (window_dc, w, h);
+
+    BITMAPINFOHEADER bitmap_info;
+    ZeroMemory (&bitmap_info, sizeof (bitmap_info));
+    bitmap_info.biSize = sizeof (BITMAPINFOHEADER);
+    bitmap_info.biPlanes = 1;
+    bitmap_info.biBitCount = 32;
+    bitmap_info.biWidth = w;
+    bitmap_info.biHeight = -h;
+    bitmap_info.biCompression = BI_RGB;
+    bitmap_info.biSizeImage = 0;
+
+    // allocate grabbed pixels buffer
+    void* grabbed_pixels = malloc (w*h*4);
+
 
     while (!should_stop) {
         double before = xxnow ();
 
-        // do stuff
+        // grab screen area
+        SelectObject (memory_dc, bitmap);
+        BitBlt (memory_dc, 0, 0, w, h, window_dc, x, y, SRCCOPY);
+        GetDIBits (memory_dc, bitmap, 0, h, grabbed_pixels,
+                (BITMAPINFO*)&bitmap_info, DIB_RGB_COLORS);
 
         double after = xxnow ();
         double dt = after - before;
-
+        double target_period = 1e3/fps;
         double time_to_sleep = target_period - dt;
+
         if (time_to_sleep > 0.) {
             timer_id = timeSetEvent ((UINT)time_to_sleep,
                     tc.wPeriodMin, (LPTIMECALLBACK)timer_ev, 0,
@@ -71,10 +95,19 @@ int main (int argc, char** argv)
     }
 
     fprintf (stdout, "shutting down\n");
+
+    // close timer
     timeKillEvent (timer_id);
     timeEndPeriod (tc.wPeriodMin);
     CloseHandle (timer_ev);
-    SetEvent (shutdown_ev);
 
+    // close grabber
+    ReleaseDC (window, window_dc);
+    DeleteDC (memory_dc);
+    DeleteObject (bitmap);
+    free (grabbed_pixels);
+
+    // release ctrl handler
+    SetEvent (shutdown_ev);
     return 0;
 }
