@@ -36,7 +36,7 @@ int main (int argc, char** argv)
 
     timeBeginPeriod (tc.wPeriodMin);
     MMRESULT timer_id;
-    HANDLE sleep_ev = 0;
+    HANDLE timer_ev = 0;
 
     // setup local clock
     LARGE_INTEGER ticks_per_sec, ticks;
@@ -60,9 +60,9 @@ int main (int argc, char** argv)
         double time_to_sleep = target_period - dt;
         if (time_to_sleep > 0.) {
             timer_id = timeSetEvent ((UINT)time_to_sleep,
-                    tc.wPeriodMin, (LPTIMECALLBACK)sleep_ev, 0,
+                    tc.wPeriodMin, (LPTIMECALLBACK)timer_ev, 0,
                     TIME_CALLBACK_EVENT_SET|TIME_ONESHOT);
-            WaitForSingleObject (sleep_ev, INFINITE);
+            WaitForSingleObject (timer_ev, INFINITE);
 
             // spin-wait if necessary
             while (xxnow () < before + target_period);
@@ -73,7 +73,7 @@ int main (int argc, char** argv)
     fprintf (stdout, "shutting down\n");
     timeKillEvent (timer_id);
     timeEndPeriod (tc.wPeriodMin);
-    CloseHandle (sleep_ev);
+    CloseHandle (timer_ev);
     SetEvent (shutdown_ev);
 
     return 0;
