@@ -6,8 +6,23 @@
 #include <windows.h>
 #include <mmsystem.h>
 
+bool should_stop = false;
+HANDLE shutdown_ev;
+
+BOOL ctrl_handler (DWORD ctrl_type)
+{
+    should_stop = true;
+    WaitForSingleObject (shutdown_ev, INFINITE);
+    CloseHandle (shutdown_ev);
+    return TRUE;
+}
+
 int main (int argc, char** argv)
 {
+    // setup Ctrl-C etc. handler
+    shutdown_ev = CreateEvent (0, FALSE, FALSE, 0);
+    SetConsoleCtrlHandler ((PHANDLER_ROUTINE)ctrl_handler, TRUE);
+
     int fps = 25;
     int x = 100;
     int y = 100;
@@ -33,7 +48,6 @@ int main (int argc, char** argv)
         (QueryPerformanceCounter (&ticks), (1e3*ticks.QuadPart/ticks_per_sec.QuadPart))
 
     double target_period = 1e3/fps;
-    bool should_stop = false;
 
     while (!should_stop) {
         double before = xxnow ();
@@ -56,9 +70,11 @@ int main (int argc, char** argv)
 
     }
 
+    fprintf (stdout, "shutting down\n");
     timeKillEvent (timer_id);
     timeEndPeriod (tc.wPeriodMin);
     CloseHandle (sleep_ev);
+    SetEvent (shutdown_ev);
 
     return 0;
 }
