@@ -24,9 +24,10 @@ project "librecorder"
     targetdir(my_targetdir)
     debugdir(my_targetdir)
 
+    links { "winmm.lib" }
+
     filter "configurations:Debug"
         defines { "DEBUG" }
-        flags { "Symbols" }
 
     filter "configurations:Release"
         defines { "NDEBUG" }
