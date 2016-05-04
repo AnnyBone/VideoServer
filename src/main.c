@@ -79,7 +79,7 @@ int __cdecl main (int argc, char** argv)
 
     renderer = SDL_CreateRenderer (screen, -1, 0);
     texture = SDL_CreateTexture (renderer,
-        SDL_PIXELFORMAT_RGB888,
+        SDL_PIXELFORMAT_ARGB8888,
         SDL_TEXTUREACCESS_STREAMING,
         w, h);
 
