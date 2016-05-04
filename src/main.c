@@ -20,6 +20,8 @@ BOOL ctrl_handler (DWORD ctrl_type)
 
 int main (int argc, char** argv)
 {
+    int rc;
+
     // setup Ctrl-C etc. handler
     shutdown_ev = CreateEvent (0, FALSE, FALSE, 0);
     SetConsoleCtrlHandler ((PHANDLER_ROUTINE)ctrl_handler, TRUE);
@@ -67,7 +69,6 @@ int main (int argc, char** argv)
     // allocate grabbed pixels buffer
     void* grabbed_pixels = malloc (w*h*4);
 
-
     while (!should_stop) {
         double before = xxnow ();
 
@@ -76,6 +77,7 @@ int main (int argc, char** argv)
         BitBlt (memory_dc, 0, 0, w, h, window_dc, x, y, SRCCOPY);
         GetDIBits (memory_dc, bitmap, 0, h, grabbed_pixels,
                 (BITMAPINFO*)&bitmap_info, DIB_RGB_COLORS);
+
 
         double after = xxnow ();
         double dt = after - before;
@@ -96,16 +98,16 @@ int main (int argc, char** argv)
 
     fprintf (stdout, "shutting down\n");
 
-    // close timer
-    timeKillEvent (timer_id);
-    timeEndPeriod (tc.wPeriodMin);
-    CloseHandle (timer_ev);
-
     // close grabber
     ReleaseDC (window, window_dc);
     DeleteDC (memory_dc);
     DeleteObject (bitmap);
     free (grabbed_pixels);
+
+    // close timer
+    timeKillEvent (timer_id);
+    timeEndPeriod (tc.wPeriodMin);
+    CloseHandle (timer_ev);
 
     // release ctrl handler
     SetEvent (shutdown_ev);

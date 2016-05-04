@@ -1,6 +1,6 @@
 
 
-workspace "librecorder"
+workspace "videosrv"
     root_dir = path.join(_MAIN_SCRIPT_DIR, "../..")
     src_dir = path.join(root_dir, "src")
     include_dir = path.join(root_dir, "include")
@@ -12,12 +12,12 @@ workspace "librecorder"
     location(_ACTION)
 
     warnings "Default"
-    flags { "FatalWarnings", "Symbols" }
 
-project "librecorder"
+project "videosrv"
     kind "ConsoleApp"
     language "C"
 
+    flags { "FatalWarnings", "Symbols" }
     includedirs(include_dir)
 
     my_targetdir = path.join(root_dir, "bin/" .. _ACTION .. "/%{cfg.buildcfg}")
@@ -25,6 +25,8 @@ project "librecorder"
     debugdir(my_targetdir)
 
     links { "winmm.lib" }
+    includedirs { path.join(ffmpeg_dir, "include") }
+    libdirs { path.join(ffmpeg_dir, "lib") }
 
     filter "configurations:Debug"
         defines { "DEBUG" }
@@ -40,3 +42,4 @@ project "librecorder"
         path.join(src_dir, "**.h"),
         path.join(src_dir, "**.c"),
     }
+
