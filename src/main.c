@@ -18,10 +18,8 @@ BOOL ctrl_handler (DWORD ctrl_type)
     return TRUE;
 }
 
-int main (int argc, char** argv)
+int __cdecl main (int argc, char** argv)
 {
-    int rc;
-
     // setup Ctrl-C etc. handler
     shutdown_ev = CreateEvent (0, FALSE, FALSE, 0);
     SetConsoleCtrlHandler ((PHANDLER_ROUTINE)ctrl_handler, TRUE);
@@ -38,7 +36,7 @@ int main (int argc, char** argv)
     fprintf (stdout, "timer resolution=%d ms\n", (int)tc.wPeriodMin);
 
     timeBeginPeriod (tc.wPeriodMin);
-    MMRESULT timer_id;
+    MMRESULT timer_id = 0;
     HANDLE timer_ev = 0;
 
     // setup local clock
