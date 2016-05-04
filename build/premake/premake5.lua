@@ -6,6 +6,7 @@ workspace "videosrv"
     include_dir = path.join(root_dir, "include")
     foreign_dir = path.join(root_dir, "foreign")
     ffmpeg_dir = path.join(foreign_dir, "ffmpeg-20160330-git-be746ae-win64-dev")
+    sdl_dir = path.join(foreign_dir, "SDL2-2.0.4")
 
     configurations { "Debug", "Release" }
     platforms { "x64" }
@@ -18,15 +19,22 @@ project "videosrv"
     language "C"
 
     flags { "FatalWarnings", "Symbols" }
-    includedirs(include_dir)
 
     my_targetdir = path.join(root_dir, "bin/" .. _ACTION .. "/%{cfg.buildcfg}")
     targetdir(my_targetdir)
     debugdir(my_targetdir)
 
-    links { "winmm.lib" }
-    includedirs { path.join(ffmpeg_dir, "include") }
-    libdirs { path.join(ffmpeg_dir, "lib") }
+    links { "winmm.lib", "sdl2.lib" }
+
+    includedirs {
+        src_dir,
+        path.join(ffmpeg_dir, "include"),
+        path.join(sdl_dir, "include")
+    }
+    libdirs {
+        path.join(ffmpeg_dir, "lib"),
+        path.join(sdl_dir, "lib/%{cfg.platform}"),
+    }
 
     filter "configurations:Debug"
         defines { "DEBUG" }

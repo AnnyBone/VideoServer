@@ -19,17 +19,17 @@ SIGN = posign.exe#
 CCFLAGS = -std:C11 -Tx64-coff -Ot -Ob1 -fp:precise -W1 -Gr -Ze#
 ASFLAGS = -AAMD64 -Gr#
 RCFLAGS = #
-LINKFLAGS = -subsystem:console -machine:x64 kernel32.lib advapi32.lib delayimp64.lib winmm.lib user32.lib gdi32.lib#
+LINKFLAGS = -subsystem:console -machine:x64 kernel32.lib advapi32.lib delayimp64.lib winmm.lib user32.lib gdi32.lib SDL2.lib#
 SIGNFLAGS = -timeurl:http://timestamp.verisign.com/scripts/timstamp.dll -location:CU -store:MY -errkill#
-INCLUDE = $(PellesCDir)\Include\Win;$(PellesCDir)\Include;src#
-LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib#
+INCLUDE = $(PellesCDir)\Include\Win;$(PellesCDir)\Include;src;foreign\SDL2-2.0.4\include#
+LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib;foreign\SDL2-2.0.4\lib\x64#
 
 # 
 # Build videosrv.exe.
 # 
 bin\pellesc\videosrv.exe: \
-	obj\pellesc\main.obj \
-	obj\pellesc\grabber.obj
+	obj\pellesc\grabber.obj \
+	obj\pellesc\main.obj
 	$(LINK) $(LINKFLAGS) -out:"$@" $**
 
 # 

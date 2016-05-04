@@ -11,7 +11,7 @@ struct grabber_s
     HBITMAP bitmap;
     BITMAPINFOHEADER bitmap_info;
 
-	int x, y, width, height;
+    int x, y, width, height;
     void* buffer;
 };
 

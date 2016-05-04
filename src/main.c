@@ -7,6 +7,9 @@
 #include <windows.h>
 #include <mmsystem.h>
 
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+
 #include <grabber.h>
 
 bool should_stop = false;
@@ -22,13 +25,22 @@ BOOL ctrl_handler (DWORD ctrl_type)
 
 int __cdecl main (int argc, char** argv)
 {
+    int rc;
+
     // setup Ctrl-C etc. handler
     shutdown_ev = CreateEvent (0, FALSE, FALSE, 0);
     SetConsoleCtrlHandler ((PHANDLER_ROUTINE)ctrl_handler, TRUE);
 
+    // setup SDL
+    rc = SDL_Init (SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
+    if (rc < 0) {
+        fprintf (stderr, "SDL_Init() failed, message: %s\n", SDL_GetError ());
+        return 1;
+    }
+
     int fps = 25;
-    int x = 100;
-    int y = 100;
+    int x = 0;
+    int y = 0;
     int w = 640;
     int h = 480;
 
@@ -54,10 +66,45 @@ int __cdecl main (int argc, char** argv)
     grabber_t grabber;
     grabber_init (&grabber, x, y, w, h);
 
+    SDL_Window* screen;
+    SDL_Renderer* renderer;
+    SDL_Texture* texture;
+    SDL_Event event;
+    SDL_Rect rect = { 0, 0, w, h };
+
+    screen = SDL_CreateWindow("videosrv",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        w, h, 0);
+
+    renderer = SDL_CreateRenderer (screen, -1, 0);
+    texture = SDL_CreateTexture (renderer,
+        SDL_PIXELFORMAT_RGB888,
+        SDL_TEXTUREACCESS_STREAMING,
+        w, h);
+
     while (!should_stop) {
         double before = xxnow ();
 
         void* grabbed_pixels = grabber_capture (&grabber);
+
+#if 0
+        void* old_pixels;
+        int old_pitch;
+        SDL_LockTexture (texture, &rect, &old_pixels, &old_pitch);
+#endif
+
+        SDL_UpdateTexture (texture, &rect,
+            grabbed_pixels, w*4);
+
+#if 0
+        SDL_UnlockTexture (texture);
+#endif
+
+        SDL_RenderClear (renderer);
+        SDL_RenderCopy (renderer, texture, NULL, NULL);
+        SDL_RenderPresent (renderer);
+        
 
         double after = xxnow ();
         double dt = after - before;
@@ -74,6 +121,8 @@ int __cdecl main (int argc, char** argv)
             while (xxnow () < before + target_period);
         }
 
+        SDL_PollEvent (&event);
+
     }
 
     fprintf (stdout, "shutting down\n");
@@ -84,6 +133,10 @@ int __cdecl main (int argc, char** argv)
     timeKillEvent (timer_id);
     timeEndPeriod (tc.wPeriodMin);
     CloseHandle (timer_ev);
+
+    SDL_DestroyTexture (texture);
+    SDL_DestroyRenderer (renderer);
+    SDL_DestroyWindow (screen);
 
     // release ctrl handler
     SetEvent (shutdown_ev);
