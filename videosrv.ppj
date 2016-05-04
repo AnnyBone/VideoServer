@@ -21,14 +21,15 @@ ASFLAGS = -AAMD64 -Gr#
 RCFLAGS = #
 LINKFLAGS = -subsystem:console -machine:x64 kernel32.lib advapi32.lib delayimp64.lib winmm.lib user32.lib gdi32.lib#
 SIGNFLAGS = -timeurl:http://timestamp.verisign.com/scripts/timstamp.dll -location:CU -store:MY -errkill#
-INCLUDE = $(PellesCDir)\Include\Win;$(PellesCDir)\Include#
+INCLUDE = $(PellesCDir)\Include\Win;$(PellesCDir)\Include;src#
 LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib#
 
 # 
-# Build videosrv.
+# Build videosrv.exe.
 # 
 bin\pellesc\videosrv.exe: \
-	obj\pellesc\main.obj
+	obj\pellesc\main.obj \
+	obj\pellesc\grabber.obj
 	$(LINK) $(LINKFLAGS) -out:"$@" $**
 
 # 
@@ -36,6 +37,13 @@ bin\pellesc\videosrv.exe: \
 # 
 obj\pellesc\main.obj: \
 	src\main.c
+	$(CC) $(CCFLAGS) "$!" -Fo"$@"
+
+# 
+# Build grabber.obj.
+# 
+obj\pellesc\grabber.obj: \
+	src\grabber.c
 	$(CC) $(CCFLAGS) "$!" -Fo"$@"
 
 .EXCLUDEDFILES:

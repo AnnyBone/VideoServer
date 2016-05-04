@@ -7,6 +7,8 @@
 #include <windows.h>
 #include <mmsystem.h>
 
+#include <grabber.h>
+
 bool should_stop = false;
 HANDLE shutdown_ev;
 
@@ -49,33 +51,13 @@ int __cdecl main (int argc, char** argv)
         (QueryPerformanceCounter (&ticks), (1e3*ticks.QuadPart/ticks_per_sec.QuadPart))
 
     // setup grabber
-    HWND window = GetDesktopWindow ();
-    HDC window_dc = GetDC (window);
-    HDC memory_dc = CreateCompatibleDC (window_dc);
-    HBITMAP bitmap = CreateCompatibleBitmap (window_dc, w, h);
-
-    BITMAPINFOHEADER bitmap_info;
-    ZeroMemory (&bitmap_info, sizeof (bitmap_info));
-    bitmap_info.biSize = sizeof (BITMAPINFOHEADER);
-    bitmap_info.biPlanes = 1;
-    bitmap_info.biBitCount = 32;
-    bitmap_info.biWidth = w;
-    bitmap_info.biHeight = -h;
-    bitmap_info.biCompression = BI_RGB;
-    bitmap_info.biSizeImage = 0;
-
-    // allocate grabbed pixels buffer
-    void* grabbed_pixels = malloc (w*h*4);
+    grabber_t grabber;
+    grabber_init (&grabber, x, y, w, h);
 
     while (!should_stop) {
         double before = xxnow ();
 
-        // grab screen area
-        SelectObject (memory_dc, bitmap);
-        BitBlt (memory_dc, 0, 0, w, h, window_dc, x, y, SRCCOPY);
-        GetDIBits (memory_dc, bitmap, 0, h, grabbed_pixels,
-                (BITMAPINFO*)&bitmap_info, DIB_RGB_COLORS);
-
+        void* grabbed_pixels = grabber_capture (&grabber);
 
         double after = xxnow ();
         double dt = after - before;
@@ -96,11 +78,7 @@ int __cdecl main (int argc, char** argv)
 
     fprintf (stdout, "shutting down\n");
 
-    // close grabber
-    ReleaseDC (window, window_dc);
-    DeleteDC (memory_dc);
-    DeleteObject (bitmap);
-    free (grabbed_pixels);
+    grabber_close (&grabber);
 
     // close timer
     timeKillEvent (timer_id);
