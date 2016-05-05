@@ -1,15 +1,15 @@
-#include <display.h>
+#include <vdisplay.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
 
-display_t* display_new (int w, int h)
+vdisplay_t* display_new (int w, int h)
 {
-    display_t* self = (display_t*) malloc (sizeof (display_t));
+    vdisplay_t* self = (vdisplay_t*) malloc (sizeof (vdisplay_t));
     if (self) {
-        memset (self, 0, sizeof (display_t));
+        memset (self, 0, sizeof (vdisplay_t));
 
         self->screen = SDL_CreateWindow("videosrv",
                 SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w, h, 0);
@@ -46,11 +46,11 @@ display_t* display_new (int w, int h)
     return self;
 }
 
-void display_destroy (display_t** pself)
+void display_destroy (vdisplay_t** pself)
 {
     assert (pself);
 
-    display_t* self = *pself;
+    vdisplay_t* self = *pself;
     if (self) {
         if (self->texture)
             SDL_DestroyTexture (self->texture);
@@ -66,7 +66,7 @@ void display_destroy (display_t** pself)
     }
 }
 
-void display_update (display_t* self, void* buffer)
+void display_update (vdisplay_t* self, void* buffer)
 {
     assert (self);
 
@@ -75,7 +75,7 @@ void display_update (display_t* self, void* buffer)
     SDL_UpdateTexture (self->texture, &self->rect, buffer, line_size);
 }
 
-void display_draw (display_t* self)
+void display_draw (vdisplay_t* self)
 {
     assert (self);
 

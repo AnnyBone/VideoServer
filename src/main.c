@@ -10,8 +10,8 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <grabber.h>
-#include <display.h>
+#include <vgrabber.h>
+#include <vdisplay.h>
 
 bool should_stop = false;
 HANDLE shutdown_ev;
@@ -64,8 +64,8 @@ int __cdecl main (int argc, char** argv)
         (QueryPerformanceCounter (&ticks), (1e3*ticks.QuadPart/ticks_per_sec.QuadPart))
 
     // setup grabber
-    grabber_t* grabber = grabber_new (x, y, w, h);
-    display_t* display = display_new (w, h);
+    vgrabber_t* grabber = grabber_new (x, y, w, h);
+    vdisplay_t* display = display_new (w, h);
 
     SDL_Event event;
 

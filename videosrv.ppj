@@ -28,9 +28,9 @@ LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib;foreign\SDL2-2.0.4\lib\x64#
 # Build videosrv.exe.
 # 
 bin\pellesc\videosrv.exe: \
-	obj\pellesc\grabber.obj \
+	obj\pellesc\vgrabber.obj \
 	obj\pellesc\main.obj \
-	obj\pellesc\display.obj
+	obj\pellesc\vdisplay.obj
 	$(LINK) $(LINKFLAGS) -out:"$@" $**
 
 # 
@@ -41,17 +41,17 @@ obj\pellesc\main.obj: \
 	$(CC) $(CCFLAGS) "$!" -Fo"$@"
 
 # 
-# Build grabber.obj.
+# Build vgrabber.obj.
 # 
-obj\pellesc\grabber.obj: \
-	src\grabber.c
+obj\pellesc\vgrabber.obj: \
+	src\vgrabber.c
 	$(CC) $(CCFLAGS) "$!" -Fo"$@"
 
 # 
-# Build display.obj.
+# Build vdisplay.obj.
 # 
-obj\pellesc\display.obj: \
-	src\display.c
+obj\pellesc\vdisplay.obj: \
+	src\vdisplay.c
 	$(CC) $(CCFLAGS) "$!" -Fo"$@"
 
 .EXCLUDEDFILES:

@@ -1,15 +1,15 @@
-#include <grabber.h>
+#include <vgrabber.h>
 
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-grabber_t* grabber_new (int x, int y, int w, int h)
+vgrabber_t* grabber_new (int x, int y, int w, int h)
 {
-    grabber_t* self = (grabber_t*) malloc (sizeof (grabber_t));
+    vgrabber_t* self = (vgrabber_t*) malloc (sizeof (vgrabber_t));
     if (self) {
-        memset (self, 0, sizeof (grabber_t));
+        memset (self, 0, sizeof (vgrabber_t));
 
         self->x = x;
         self->y = y;
@@ -39,11 +39,11 @@ grabber_t* grabber_new (int x, int y, int w, int h)
     return self;
 }
 
-void grabber_destroy (grabber_t** pself)
+void grabber_destroy (vgrabber_t** pself)
 {
     assert (pself);
 
-    grabber_t* self = *pself;
+    vgrabber_t* self = *pself;
     if (self) {
         ReleaseDC (self->window, self->window_dc);
         DeleteDC (self->memory_dc);
@@ -55,14 +55,14 @@ void grabber_destroy (grabber_t** pself)
     }
 }
 
-int grabber_buffer_size (grabber_t* self)
+int grabber_buffer_size (vgrabber_t* self)
 {
     assert (self);
 
     return self->w * self->h * 4;
 }
 
-void* grabber_capture (grabber_t* self)
+void* grabber_capture (vgrabber_t* self)
 {
     assert (self);
 
