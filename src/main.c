@@ -5,13 +5,13 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <mmsystem.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
 #include <vgrabber.h>
 #include <vdisplay.h>
+#include <vtime.h>
 
 bool should_stop = false;
 HANDLE shutdown_ev;
@@ -45,66 +45,33 @@ int __cdecl main (int argc, char** argv)
     int w = 640;
     int h = 480;
 
-    // setup timer
-    TIMECAPS tc;
-    timeGetDevCaps (&tc, sizeof (tc));
-    fprintf (stdout, "timer resolution=%d ms\n", (int)tc.wPeriodMin);
-
-    timeBeginPeriod (tc.wPeriodMin);
-    MMRESULT timer_id = 0;
-    HANDLE timer_ev = 0;
-
-    // setup local clock
-    LARGE_INTEGER ticks_per_sec, ticks;
-    QueryPerformanceFrequency (&ticks_per_sec);
-    fprintf (stdout, "ticks per sec=%lld\n", ticks_per_sec.QuadPart);
-
-    // local timestamp, in msec
-    #define xxnow() \
-        (QueryPerformanceCounter (&ticks), (1e3*ticks.QuadPart/ticks_per_sec.QuadPart))
-
-    // setup grabber
     vgrabber_t* grabber = grabber_new (x, y, w, h);
     vdisplay_t* display = display_new (w, h);
+    vtime_t* clk = time_new ();
 
     SDL_Event event;
 
     while (!should_stop) {
-        double before = xxnow ();
+        double before = time_now (clk);
 
         void* pixels = grabber_capture (grabber);
         display_update (display, pixels);
         display_draw (display);
-
-        double after = xxnow ();
-        double dt = after - before;
-        double target_period = 1e3/fps;
-        double time_to_sleep = target_period - dt;
-
-        if (time_to_sleep > 0.) {
-            timer_id = timeSetEvent ((UINT)time_to_sleep,
-                    tc.wPeriodMin, (LPTIMECALLBACK)timer_ev, 0,
-                    TIME_CALLBACK_EVENT_SET|TIME_ONESHOT);
-            WaitForSingleObject (timer_ev, INFINITE);
-
-            // spin-wait if necessary
-            while (xxnow () < before + target_period);
-        }
-
         SDL_PollEvent (&event);
 
+        double after = time_now (clk);
+        double dt = after - before;
+        double target_period = 1e3/fps;
+        double time_to_wait = target_period - dt;
+
+        double actual_wait = time_wait (clk, time_to_wait);
     }
 
     fprintf (stdout, "shutting down\n");
 
-    grabber_destroy (&grabber);
+    time_destroy (&clk);
     display_destroy (&display);
-
-    // close timer
-    timeKillEvent (timer_id);
-    timeEndPeriod (tc.wPeriodMin);
-    CloseHandle (timer_ev);
-
+    grabber_destroy (&grabber);
 
     // release ctrl handler
     SetEvent (shutdown_ev);
