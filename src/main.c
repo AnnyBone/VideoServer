@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <conio.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -50,15 +51,24 @@ int __cdecl main (int argc, char** argv)
     vtime_t* clk = time_new ();
 
     SDL_Event event;
-    char debug_info[20];
+    char debug_info[50];
 
     double curr_dt = 0.;
+    SYSTEMTIME st;
 
     while (!should_stop) {
+        char cmd = _kbhit()? _getch() : 0;
+        if (cmd == ' ')
+            time_freeze (clk, !clk->frozen);
+
         double before = time_now (clk);
 
-        snprintf (debug_info, 20, "%03.0f\0", curr_dt);
+        double xt = before - time_frozen (clk);
+        time_as_systemtime (xt, &st);
+        snprintf (debug_info, 50, "%03.0f %02d:%02d:%02d.%03d",
+            curr_dt, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
         grabber_debug_info (grabber, debug_info);
+
         void* pixels = grabber_capture (grabber);
         display_update (display, pixels);
         display_draw (display);
