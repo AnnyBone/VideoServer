@@ -62,6 +62,13 @@ int grabber_buffer_size (vgrabber_t* self)
     return self->w * self->h * 4;
 }
 
+void grabber_debug_info (vgrabber_t* self, const char* debug_info)
+{
+    assert (self);
+
+    self->debug_info = debug_info;
+}
+
 void* grabber_capture (vgrabber_t* self)
 {
     assert (self);
@@ -70,6 +77,11 @@ void* grabber_capture (vgrabber_t* self)
     SelectObject (self->memory_dc, self->bitmap);
     BitBlt (self->memory_dc, 0, 0, self->w, self->h,
             self->window_dc, self->x, self->y, SRCCOPY);
+
+    if (self->debug_info) {
+        RECT rect = { self->x, self->y, self->x + self->w, self->y + self->h };
+        DrawText (self->memory_dc, self->debug_info, -1, &rect, DT_TOP|DT_RIGHT|DT_NOCLIP);
+    }
 
     GetDIBits (self->memory_dc, self->bitmap, 0, self->h, self->buffer,
             (BITMAPINFO*)&self->bitmap_info, DIB_RGB_COLORS);

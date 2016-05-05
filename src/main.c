@@ -50,21 +50,27 @@ int __cdecl main (int argc, char** argv)
     vtime_t* clk = time_new ();
 
     SDL_Event event;
+    char debug_info[20];
+
+    double curr_dt = 0.;
 
     while (!should_stop) {
         double before = time_now (clk);
 
+        snprintf (debug_info, 20, "%03.0f\0", curr_dt);
+        grabber_debug_info (grabber, debug_info);
         void* pixels = grabber_capture (grabber);
         display_update (display, pixels);
         display_draw (display);
+
         SDL_PollEvent (&event);
 
         double after = time_now (clk);
-        double dt = after - before;
+        curr_dt = after - before;
         double target_period = 1e3/fps;
-        double time_to_wait = target_period - dt;
+        double time_to_wait = target_period - curr_dt;
 
-        double actual_wait = time_wait (clk, time_to_wait);
+        time_wait (clk, time_to_wait);
     }
 
     fprintf (stdout, "shutting down\n");

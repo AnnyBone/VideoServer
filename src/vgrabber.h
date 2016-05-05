@@ -13,12 +13,16 @@ struct vgrabber_s
 
     int x, y, w, h;
     void* buffer;
+
+    const char* debug_info;
 };
 
 typedef struct vgrabber_s vgrabber_t;
 
 vgrabber_t* grabber_new (int x, int y, int w, int h);
 void grabber_destroy (vgrabber_t** pself);
+
+void grabber_debug_info (vgrabber_t* self, const char* debug_info);
 
 int grabber_buffer_size (vgrabber_t* self);
 void* grabber_capture (vgrabber_t* self);
