@@ -15,8 +15,9 @@ struct display_s
 typedef struct display_s display_t;
 
 display_t* display_new (int w, int h);
-void display_destroy (display_t* self);
+void display_destroy (display_t** pself);
 
 void display_update (display_t* self, void* buffer);
+void display_draw (display_t* self);
 
 #endif

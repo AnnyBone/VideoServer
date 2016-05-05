@@ -1,6 +1,7 @@
 #include <display.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -15,7 +16,7 @@ display_t* display_new (int w, int h)
         if (!self->screen) {
             fprintf (stderr, "SDL_CreateWindow() failed, message: %s\n",
                     SDL_GetError ());
-            display_destroy (self);
+            display_destroy (&self);
             return 0;
         }
 
@@ -23,7 +24,7 @@ display_t* display_new (int w, int h)
         if (!self->renderer) {
             fprintf (stderr, "SDL_CreateRenderer() failed, message: %s\n",
                     SDL_GetError ());
-            display_destroy (self);
+            display_destroy (&self);
             return 0;
         }
 
@@ -32,7 +33,7 @@ display_t* display_new (int w, int h)
         if (!self->texture) {
             fprintf (stderr, "SDL_CreateTexture() failed, message: %s\n",
                     SDL_GetError ());
-            display_destroy (self);
+            display_destroy (&self);
             return 0;
         }
 
@@ -45,18 +46,24 @@ display_t* display_new (int w, int h)
     return self;
 }
 
-void display_destroy (display_t* self)
+void display_destroy (display_t** pself)
 {
-    assert (self);
+    assert (pself);
 
-    if (self->texture)
-        SDL_DestroyTexture (self->texture);
+    display_t* self = *pself;
+    if (self) {
+        if (self->texture)
+            SDL_DestroyTexture (self->texture);
 
-    if (self->renderer)
-        SDL_DestroyRenderer (self->renderer);
+        if (self->renderer)
+            SDL_DestroyRenderer (self->renderer);
 
-    if (self->screen)
-        SDL_DestroyWindow (self->screen);
+        if (self->screen)
+            SDL_DestroyWindow (self->screen);
+
+        free (self);
+        self = 0;
+    }
 }
 
 void display_update (display_t* self, void* buffer)

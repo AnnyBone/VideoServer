@@ -11,14 +11,14 @@ struct grabber_s
     HBITMAP bitmap;
     BITMAPINFOHEADER bitmap_info;
 
-    int x, y, width, height;
+    int x, y, w, h;
     void* buffer;
 };
 
 typedef struct grabber_s grabber_t;
 
-int grabber_init (grabber_t* self, int x, int y, int width, int height);
-int grabber_close (grabber_t* self);
+grabber_t* grabber_new (int x, int y, int w, int h);
+void grabber_destroy (grabber_t** pself);
 
 int grabber_buffer_size (grabber_t* self);
 void* grabber_capture (grabber_t* self);

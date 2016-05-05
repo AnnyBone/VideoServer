@@ -11,6 +11,7 @@
 #include <SDL.h>
 
 #include <grabber.h>
+#include <display.h>
 
 bool should_stop = false;
 HANDLE shutdown_ev;
@@ -63,33 +64,17 @@ int __cdecl main (int argc, char** argv)
         (QueryPerformanceCounter (&ticks), (1e3*ticks.QuadPart/ticks_per_sec.QuadPart))
 
     // setup grabber
-    grabber_t grabber;
-    grabber_init (&grabber, x, y, w, h);
+    grabber_t* grabber = grabber_new (x, y, w, h);
+    display_t* display = display_new (w, h);
 
     SDL_Event event;
 
     while (!should_stop) {
         double before = xxnow ();
 
-        void* grabbed_pixels = grabber_capture (&grabber);
-
-#if 0
-        void* old_pixels;
-        int old_pitch;
-        SDL_LockTexture (texture, &rect, &old_pixels, &old_pitch);
-#endif
-
-        SDL_UpdateTexture (texture, &rect,
-            grabbed_pixels, w*4);
-
-#if 0
-        SDL_UnlockTexture (texture);
-#endif
-
-        SDL_RenderClear (renderer);
-        SDL_RenderCopy (renderer, texture, NULL, NULL);
-        SDL_RenderPresent (renderer);
-        
+        void* pixels = grabber_capture (grabber);
+        display_update (display, pixels);
+        display_draw (display);
 
         double after = xxnow ();
         double dt = after - before;
@@ -112,16 +97,14 @@ int __cdecl main (int argc, char** argv)
 
     fprintf (stdout, "shutting down\n");
 
-    grabber_close (&grabber);
+    grabber_destroy (&grabber);
+    display_destroy (&display);
 
     // close timer
     timeKillEvent (timer_id);
     timeEndPeriod (tc.wPeriodMin);
     CloseHandle (timer_ev);
 
-    SDL_DestroyTexture (texture);
-    SDL_DestroyRenderer (renderer);
-    SDL_DestroyWindow (screen);
 
     // release ctrl handler
     SetEvent (shutdown_ev);
