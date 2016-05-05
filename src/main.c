@@ -66,22 +66,7 @@ int __cdecl main (int argc, char** argv)
     grabber_t grabber;
     grabber_init (&grabber, x, y, w, h);
 
-    SDL_Window* screen;
-    SDL_Renderer* renderer;
-    SDL_Texture* texture;
     SDL_Event event;
-    SDL_Rect rect = { 0, 0, w, h };
-
-    screen = SDL_CreateWindow("videosrv",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        w, h, 0);
-
-    renderer = SDL_CreateRenderer (screen, -1, 0);
-    texture = SDL_CreateTexture (renderer,
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING,
-        w, h);
 
     while (!should_stop) {
         double before = xxnow ();
