@@ -62,11 +62,11 @@ int grabber_buffer_size (vgrabber_t* self)
     return self->w * self->h * 4;
 }
 
-void grabber_debug_info (vgrabber_t* self, const char* debug_info)
+void grabber_embed_str (vgrabber_t* self, const char* str)
 {
     assert (self);
 
-    self->debug_info = debug_info;
+    self->embed_str = str;
 }
 
 void* grabber_capture (vgrabber_t* self)
@@ -78,14 +78,14 @@ void* grabber_capture (vgrabber_t* self)
     BitBlt (self->memory_dc, 0, 0, self->w, self->h,
             self->window_dc, self->x, self->y, SRCCOPY);
 
-    if (self->debug_info) {
+    if (self->embed_str) {
         RECT rect = {
             self->x,
             self->y,
             self->x + self->w,
             self->y + self->h
         };
-        DrawText (self->memory_dc, self->debug_info, -1, &rect,
+        DrawText (self->memory_dc, self->embed_str, -1, &rect,
             DT_TOP|DT_RIGHT|DT_NOCLIP);
     }
 

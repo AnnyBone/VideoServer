@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <conio.h>
+#include <assert.h>
+#include <math.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -36,7 +38,22 @@ void random_wait (vtime_t* time, double min, double max)
     time_wait (time, time_to_wait);
 }
 
-#define fw3(x) (x>99.9? 99.9 : x<-99.9? -99.9 : x)
+// return fix-width float
+inline double fw(double x, size_t n, size_t k)
+{
+    assert (n-1>k);
+
+    double mx = pow(10, n-1-k);
+    double eps = pow(10, -(double)k);
+
+    #if 0
+    fprintf (stdout, "mx=%f, eps=%f\n", mx, eps);
+    #endif
+
+    return x<+mx? x>-mx? x:(-mx+eps):(+mx-eps);
+}
+
+#define fw41(x) fw(x,4,1)
 
 int __cdecl main (int argc, char** argv)
 {
@@ -65,7 +82,10 @@ int __cdecl main (int argc, char** argv)
     vclock_t* clk = clock_new ();
 
     SDL_Event event;
-    char debug_info[50];
+
+    bool grabber_embed_debug = true;
+    const int debug_info_len = 50;
+    char debug_info[debug_info_len];
 
     double curr_dt = 0.;
     double time_balance = 0.;
@@ -78,12 +98,15 @@ int __cdecl main (int argc, char** argv)
 
         double before = time_now (time);
 
-        double xt = clock_now (clk);
-        time_as_systemtime (xt, &st);
-        snprintf (debug_info, 50, "%04.1f %+05.1f " TIME_STR_FORMAT,
-            fw3(curr_dt), fw3(time_balance),
-            st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
-        grabber_debug_info (grabber, debug_info);
+        if (grabber_embed_debug) {
+            double now = clock_now (clk);
+            time_as_systemtime (now, &st);
+            snprintf (debug_info, debug_info_len,
+                "%04.1f %+05.1f " TIME_STR_FORMAT,
+                fw41(curr_dt), fw41(time_balance),
+                st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
+            grabber_embed_str (grabber, debug_info);
+        }
 
         void* pixels = grabber_capture (grabber);
         display_update (display, pixels);
@@ -91,7 +114,8 @@ int __cdecl main (int argc, char** argv)
 
         SDL_PollEvent (&event);
 
-        random_wait (time, 10, 60);
+        //random_wait (time, 10, 60);
+        time_wait (time, 100);
 
         double after = time_now (time);
         curr_dt = after - before;

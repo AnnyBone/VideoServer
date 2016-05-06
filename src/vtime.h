@@ -43,7 +43,6 @@ struct vclock_s
     LARGE_INTEGER ticks_per_sec;
     LARGE_INTEGER start_ts, freeze_ts;
     LONGLONG freeze_acc;
-    char str [TIME_STR_SIZE];
 };
 
 typedef struct vclock_s vclock_t;
@@ -58,6 +57,5 @@ bool clock_is_freeze (vclock_t* self);
 void clock_toggle_freeze (vclock_t* self);
 
 double clock_now (vclock_t* self);
-const char* clock_now_str (vclock_t* self);
 
 #endif
