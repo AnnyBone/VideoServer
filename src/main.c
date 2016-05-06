@@ -114,8 +114,7 @@ int __cdecl main (int argc, char** argv)
 
         SDL_PollEvent (&event);
 
-        //random_wait (time, 10, 60);
-        time_wait (time, 100);
+        random_wait (time, 10, 60);
 
         double after = time_now (time);
         curr_dt = after - before;
