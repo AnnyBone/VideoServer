@@ -31,7 +31,7 @@ double time_wait (vtime_t* self, double time_to_wait);
 void time_as_systemtime (double msec, SYSTEMTIME* st);
 
 #define TIME_STR_FORMAT "%02d:%02d:%02d.%03d"
-#define TIME_STR_SIZE (2+1+2+1+2+1+3+1)
+#define TIME_STR_SIZE (2+1+2+1+2+1+3)
 
 inline int time_str_size (void) { return TIME_STR_SIZE; }
 int time_str (double msec, char* buffer, size_t size);
