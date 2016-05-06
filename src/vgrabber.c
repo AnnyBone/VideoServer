@@ -79,8 +79,14 @@ void* grabber_capture (vgrabber_t* self)
             self->window_dc, self->x, self->y, SRCCOPY);
 
     if (self->debug_info) {
-        RECT rect = { self->x, self->y, self->x + self->w, self->y + self->h };
-        DrawText (self->memory_dc, self->debug_info, -1, &rect, DT_TOP|DT_RIGHT|DT_NOCLIP);
+        RECT rect = {
+            self->x,
+            self->y,
+            self->x + self->w,
+            self->y + self->h
+        };
+        DrawText (self->memory_dc, self->debug_info, -1, &rect,
+            DT_TOP|DT_RIGHT|DT_NOCLIP);
     }
 
     GetDIBits (self->memory_dc, self->bitmap, 0, self->h, self->buffer,
