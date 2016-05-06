@@ -48,7 +48,8 @@ int __cdecl main (int argc, char** argv)
 
     vgrabber_t* grabber = grabber_new (x, y, w, h);
     vdisplay_t* display = display_new (w, h);
-    vtime_t* clk = time_new ();
+    vtime_t* time = time_new ();
+    vclock_t* clk = clock_new ();
 
     SDL_Event event;
     char debug_info[50];
@@ -59,14 +60,14 @@ int __cdecl main (int argc, char** argv)
     while (!should_stop) {
         char cmd = _kbhit()? _getch() : 0;
         if (cmd == ' ')
-            time_freeze (clk, !clk->frozen);
+            clock_toggle_freeze (clk);
 
-        double before = time_now (clk);
+        double before = time_now (time);
 
-        double xt = before - time_frozen (clk);
+        double xt = clock_now (clk);
         time_as_systemtime (xt, &st);
-        snprintf (debug_info, 50, "%03.0f %02d:%02d:%02d.%03d",
-            curr_dt, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+        snprintf (debug_info, 50, "%03.0f " TIME_STR_FORMAT,
+            curr_dt, st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
         grabber_debug_info (grabber, debug_info);
 
         void* pixels = grabber_capture (grabber);
@@ -75,17 +76,18 @@ int __cdecl main (int argc, char** argv)
 
         SDL_PollEvent (&event);
 
-        double after = time_now (clk);
+        double after = time_now (time);
         curr_dt = after - before;
         double target_period = 1e3/fps;
         double time_to_wait = target_period - curr_dt;
 
-        time_wait (clk, time_to_wait);
+        time_wait (time, time_to_wait);
     }
 
     fprintf (stdout, "shutting down\n");
 
-    time_destroy (&clk);
+    clock_destroy (&clk);
+    time_destroy (&time);
     display_destroy (&display);
     grabber_destroy (&grabber);
 
