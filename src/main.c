@@ -25,6 +25,19 @@ BOOL ctrl_handler (DWORD ctrl_type)
     return TRUE;
 }
 
+double random (double min, double max)
+{
+    return ((double) rand () / (RAND_MAX+1)) * (max-min+1) + min;
+}
+
+void random_wait (vtime_t* time, double min, double max)
+{
+    double time_to_wait = random (min, max);
+    time_wait (time, time_to_wait);
+}
+
+#define fw3(x) (x>99.9? 99.9 : x<-99.9? -99.9 : x)
+
 int __cdecl main (int argc, char** argv)
 {
     int rc;
@@ -55,6 +68,7 @@ int __cdecl main (int argc, char** argv)
     char debug_info[50];
 
     double curr_dt = 0.;
+    double time_balance = 0.;
     SYSTEMTIME st;
 
     while (!should_stop) {
@@ -66,8 +80,9 @@ int __cdecl main (int argc, char** argv)
 
         double xt = clock_now (clk);
         time_as_systemtime (xt, &st);
-        snprintf (debug_info, 50, "%03.0f " TIME_STR_FORMAT,
-            curr_dt, st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
+        snprintf (debug_info, 50, "%04.1f %+05.1f " TIME_STR_FORMAT,
+            fw3(curr_dt), fw3(time_balance),
+            st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
         grabber_debug_info (grabber, debug_info);
 
         void* pixels = grabber_capture (grabber);
@@ -76,12 +91,16 @@ int __cdecl main (int argc, char** argv)
 
         SDL_PollEvent (&event);
 
+        random_wait (time, 10, 60);
+
         double after = time_now (time);
         curr_dt = after - before;
         double target_period = 1e3/fps;
         double time_to_wait = target_period - curr_dt;
 
-        time_wait (time, time_to_wait);
+        time_balance += time_to_wait;
+        double actual_wait = time_wait (time, time_balance);
+        time_balance -= actual_wait;
     }
 
     fprintf (stdout, "shutting down\n");
