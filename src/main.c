@@ -102,8 +102,8 @@ int __cdecl main (int argc, char** argv)
             double now = clock_now (clk);
             time_as_systemtime (now, &st);
             snprintf (debug_info, debug_info_len,
-                "%04.1f %+05.1f " TIME_STR_FORMAT,
-                fw41(curr_dt), fw41(time_balance),
+                "%04.1f %04.1f " TIME_STR_FORMAT,
+                fw41(curr_dt), fw41(-time_balance),
                 st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
             grabber_embed_str (grabber, debug_info);
         }
