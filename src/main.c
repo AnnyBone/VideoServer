@@ -15,6 +15,7 @@
 #include <vgrabber.h>
 #include <vdisplay.h>
 #include <vtime.h>
+#include <vencoder_x264.h>
 
 bool should_stop = false;
 HANDLE shutdown_ev;
@@ -39,11 +40,11 @@ void random_wait (vtime_t* time, double min, double max)
 }
 
 // return fix-width float
-inline double fw(double x, size_t n, size_t k)
+double fw(double x, size_t n, size_t k)
 {
     assert (n-1>k);
 
-    double mx = pow(10, n-1-k);
+    double mx = pow(10, (double)(n-1-k));
     double eps = pow(10, -(double)k);
 
     #if 0
@@ -80,14 +81,16 @@ int __cdecl main (int argc, char** argv)
     vdisplay_t* display = display_new (w, h);
     vtime_t* time = time_new ();
     vclock_t* clk = clock_new ();
+    vencoder_x264_t* encoder = encoder_x264_new (w, h);
 
     SDL_Event event;
 
     bool grabber_embed_debug = true;
-    const int debug_info_len = 50;
+    #define debug_info_len 50
     char debug_info[debug_info_len];
 
     void* pixels = malloc (grabber_buffer_size (grabber));
+    void* encoded = malloc (grabber_buffer_size (grabber));
 
     double curr_dt = 0.;
     double time_balance = 0.;
@@ -111,12 +114,17 @@ int __cdecl main (int argc, char** argv)
         }
 
         grabber_capture (grabber, pixels);
+
         display_update (display, pixels);
         display_draw (display);
 
+        encoder_x264_encode (encoder, pixels, encoded);
+
         SDL_PollEvent (&event);
 
+        #if 0
         random_wait (time, 10, 60);
+        #endif
 
         double after = time_now (time);
         curr_dt = after - before;
@@ -131,7 +139,9 @@ int __cdecl main (int argc, char** argv)
     fprintf (stdout, "shutting down\n");
 
     free (pixels);
+    free (encoded);
 
+    encoder_x264_destroy (&encoder);
     clock_destroy (&clk);
     time_destroy (&time);
     display_destroy (&display);

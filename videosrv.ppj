@@ -19,10 +19,10 @@ SIGN = posign.exe#
 CCFLAGS = -std:C11 -Tx64-coff -Ot -Ob1 -fp:precise -W1 -Gr -Ze#
 ASFLAGS = -AAMD64 -Gr#
 RCFLAGS = #
-LINKFLAGS = -subsystem:console -machine:x64 kernel32.lib advapi32.lib delayimp64.lib winmm.lib user32.lib gdi32.lib SDL2.lib#
+LINKFLAGS = -subsystem:console -machine:x64 kernel32.lib advapi32.lib delayimp64.lib winmm.lib user32.lib gdi32.lib SDL2.lib libx264-148.lib#
 SIGNFLAGS = -timeurl:http://timestamp.verisign.com/scripts/timstamp.dll -location:CU -store:MY -errkill#
-INCLUDE = $(PellesCDir)\Include\Win;$(PellesCDir)\Include;src;foreign\SDL2-2.0.4\include#
-LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib;foreign\SDL2-2.0.4\lib\x64#
+INCLUDE = $(PellesCDir)\Include\Win;$(PellesCDir)\Include;src;foreign\SDL2-2.0.4\include;foreign\x264-snapshot-20160506-2245-stable#
+LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib;foreign\SDL2-2.0.4\lib\x64;foreign\x264-snapshot-20160506-2245-stable#
 
 # 
 # Build videosrv.exe.
@@ -31,7 +31,8 @@ bin\pellesc\videosrv.exe: \
 	obj\pellesc\main.obj \
 	obj\pellesc\vdisplay.obj \
 	obj\pellesc\vgrabber.obj \
-	obj\pellesc\vtime.obj
+	obj\pellesc\vtime.obj \
+	obj\pellesc\vencoder_x264.obj
 	$(LINK) $(LINKFLAGS) -out:"$@" $**
 
 # 
@@ -60,6 +61,13 @@ obj\pellesc\vdisplay.obj: \
 # 
 obj\pellesc\vtime.obj: \
 	src\vtime.c
+	$(CC) $(CCFLAGS) "$!" -Fo"$@"
+
+# 
+# Build vencoder_x264.obj.
+# 
+obj\pellesc\vencoder_x264.obj: \
+	src\vencoder_x264.c
 	$(CC) $(CCFLAGS) "$!" -Fo"$@"
 
 .EXCLUDEDFILES:
