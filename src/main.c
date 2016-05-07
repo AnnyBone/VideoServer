@@ -87,6 +87,8 @@ int __cdecl main (int argc, char** argv)
     const int debug_info_len = 50;
     char debug_info[debug_info_len];
 
+    void* pixels = malloc (grabber_buffer_size (grabber));
+
     double curr_dt = 0.;
     double time_balance = 0.;
     SYSTEMTIME st;
@@ -108,7 +110,7 @@ int __cdecl main (int argc, char** argv)
             grabber_embed_str (grabber, debug_info);
         }
 
-        void* pixels = grabber_capture (grabber);
+        grabber_capture (grabber, pixels);
         display_update (display, pixels);
         display_draw (display);
 
@@ -127,6 +129,8 @@ int __cdecl main (int argc, char** argv)
     }
 
     fprintf (stdout, "shutting down\n");
+
+    free (pixels);
 
     clock_destroy (&clk);
     time_destroy (&time);

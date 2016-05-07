@@ -12,7 +12,7 @@ struct vgrabber_s
     BITMAPINFOHEADER bitmap_info;
 
     int x, y, w, h;
-    void* buffer;
+    int bpp;
 
     const char* embed_str;
 };
@@ -26,6 +26,6 @@ void grabber_destroy (vgrabber_t** pself);
 void grabber_embed_str (vgrabber_t* self, const char* str);
 
 int grabber_buffer_size (vgrabber_t* self);
-void* grabber_capture (vgrabber_t* self);
+void grabber_capture (vgrabber_t* self, void* buffer);
 
 #endif

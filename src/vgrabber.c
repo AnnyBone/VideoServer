@@ -15,6 +15,7 @@ vgrabber_t* grabber_new (int x, int y, int w, int h)
         self->y = y;
         self->w = w;
         self->h = h;
+        self->bpp = 4;
 
         self->window = GetDesktopWindow ();
         self->window_dc = GetDC (self->window);
@@ -22,18 +23,15 @@ vgrabber_t* grabber_new (int x, int y, int w, int h)
         self->bitmap = CreateCompatibleBitmap (self->window_dc,
             self->w, self->h);
 
-        int bpp = 4;
 
         ZeroMemory (&self->bitmap_info, sizeof (BITMAPINFOHEADER));
         self->bitmap_info.biSize = sizeof (BITMAPINFOHEADER);
         self->bitmap_info.biPlanes = 1;
-        self->bitmap_info.biBitCount = bpp*8;
+        self->bitmap_info.biBitCount = self->bpp*8;
         self->bitmap_info.biWidth = w;
         self->bitmap_info.biHeight = -h;
         self->bitmap_info.biCompression = BI_RGB;
         self->bitmap_info.biSizeImage = 0;
-
-        self->buffer = malloc (self->w * self->h * bpp);
     }
 
     return self;
@@ -49,7 +47,6 @@ void grabber_destroy (vgrabber_t** pself)
         DeleteDC (self->memory_dc);
         DeleteObject (self->bitmap);
 
-        free (self->buffer);
         free (self);
         self = 0;
     }
@@ -69,7 +66,7 @@ void grabber_embed_str (vgrabber_t* self, const char* str)
     self->embed_str = str;
 }
 
-void* grabber_capture (vgrabber_t* self)
+void grabber_capture (vgrabber_t* self, void* buffer)
 {
     assert (self);
 
@@ -89,9 +86,7 @@ void* grabber_capture (vgrabber_t* self)
             DT_TOP|DT_RIGHT|DT_NOCLIP);
     }
 
-    GetDIBits (self->memory_dc, self->bitmap, 0, self->h, self->buffer,
+    GetDIBits (self->memory_dc, self->bitmap, 0, self->h, buffer,
             (BITMAPINFO*)&self->bitmap_info, DIB_RGB_COLORS);
-
-    return self->buffer;
 }
 
