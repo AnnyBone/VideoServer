@@ -98,7 +98,6 @@ vclock_t* clock_new (void)
     vclock_t* self = (vclock_t*) malloc (sizeof (vclock_t));
     if (self) {
         memset (self, 0, sizeof (vclock_t));
-        memset (self->str, 0, TIME_STR_SIZE);
         QueryPerformanceCounter (&self->start_ts);
         QueryPerformanceFrequency (&self->ticks_per_sec);
     }
@@ -166,14 +165,4 @@ double clock_now (vclock_t* self)
 
     return 1e3 * (dticks - freeze_ticks) / self->ticks_per_sec.QuadPart;
 }
-
-const char* clock_now_str (vclock_t* self)
-{
-    assert (self);
-
-    double now = clock_now (self);
-    time_str (now, self->str, sizeof (self->str));
-    return self->str;
-}
-
 
