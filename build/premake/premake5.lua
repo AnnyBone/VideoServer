@@ -3,6 +3,7 @@
 workspace "videosrv"
     root_dir = path.join(_MAIN_SCRIPT_DIR, "../..")
     src_dir = path.join(root_dir, "src")
+    etc_dir = path.join(root_dir, "etc")
     include_dir = path.join(root_dir, "include")
     foreign_dir = path.join(root_dir, "foreign")
     ffmpeg_dir = path.join(foreign_dir, "ffmpeg-20160330-git-be746ae-win64-dev")
@@ -15,6 +16,34 @@ workspace "videosrv"
     location(_ACTION)
 
     warnings "Default"
+
+project "x264_example"
+    kind "ConsoleApp"
+    language "C"
+
+    flags { "FatalWarnings", "Symbols" }
+
+    my_targetdir = path.join(root_dir, "bin/" .. _ACTION .. "/%{cfg.buildcfg}")
+    targetdir(my_targetdir)
+    debugdir(my_targetdir)
+
+    links { "libx264-148.lib" }
+
+    includedirs { x264_dir }
+    libdirs { x264_dir }
+
+    filter "configurations:Debug"
+        defines { "DEBUG" }
+
+    filter "configurations:Release"
+        defines { "NDEBUG" }
+        optimize "On"
+
+    filter "platforms:x64"
+        architecture "x86_64"
+
+    files { path.join(etc_dir, "x264_example/example.c") }
+
 
 project "videosrv"
     kind "ConsoleApp"
