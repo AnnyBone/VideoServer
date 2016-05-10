@@ -19,9 +19,11 @@ vencoder_x264_t* encoder_x264_new (int w, int h)
             return 0;
         }
 
-        self->param.i_csp = X264_CSP_BGRA;
+        self->param.i_csp = X264_CSP_I420;
         self->param.i_width = w;
         self->param.i_height = h;
+        self->param.b_vfr_input = 0;
+        self->param.b_repeat_headers = 1;
         self->param.b_annexb = true;
 
         if (x264_param_apply_profile (&self->param, "high444") < 0) {
