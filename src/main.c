@@ -96,6 +96,9 @@ int __cdecl main (int argc, char** argv)
     double time_balance = 0.;
     SYSTEMTIME st;
 
+    int frame_number = 0;
+    const int max_frame_number = 256;
+
     while (!should_stop) {
         char cmd = _kbhit()? _getch() : 0;
         if (cmd == ' ')
@@ -107,9 +110,10 @@ int __cdecl main (int argc, char** argv)
             double now = clock_now (clk);
             time_as_systemtime (now, &st);
             snprintf (debug_info, debug_info_len,
-                "%04.1f %04.1f " TIME_STR_FORMAT,
+                "%04.1f %04.1f" TIME_STR_FORMAT " %05d",
                 fw41(curr_dt), fw41(-time_balance),
-                st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds);
+                st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds,
+                frame_number);
             grabber_embed_str (grabber, debug_info);
         }
 
@@ -125,6 +129,10 @@ int __cdecl main (int argc, char** argv)
         #if 0
         random_wait (time, 10, 60);
         #endif
+
+        ++frame_number;
+        if (frame_number >= max_frame_number)
+            should_stop = true;
 
         double after = time_now (time);
         curr_dt = after - before;
