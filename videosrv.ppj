@@ -30,9 +30,10 @@ LIB = $(PellesCDir)\Lib\Win64;$(PellesCDir)\Lib;foreign\SDL2-2.0.4\lib\x64;forei
 bin\pellesc\videosrv.exe: \
 	obj\pellesc\main.obj \
 	obj\pellesc\vdisplay.obj \
+	obj\pellesc\vencoder_x264.obj \
 	obj\pellesc\vgrabber.obj \
 	obj\pellesc\vtime.obj \
-	obj\pellesc\vencoder_x264.obj
+	obj\pellesc\vfile.obj
 	$(LINK) $(LINKFLAGS) -out:"$@" $**
 
 # 
@@ -68,6 +69,13 @@ obj\pellesc\vtime.obj: \
 # 
 obj\pellesc\vencoder_x264.obj: \
 	src\vencoder_x264.c
+	$(CC) $(CCFLAGS) "$!" -Fo"$@"
+
+# 
+# Build vfile.obj.
+# 
+obj\pellesc\vfile.obj: \
+	src\vfile.c
 	$(CC) $(CCFLAGS) "$!" -Fo"$@"
 
 .EXCLUDEDFILES:
