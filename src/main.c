@@ -19,6 +19,8 @@
 #include <vfile.h>
 #include <vencoder_x264.h>
 
+#include <libyuv.h>
+
 bool should_stop = false;
 HANDLE shutdown_ev;
 
@@ -79,6 +81,9 @@ int __cdecl main (int argc, char** argv)
     int w = 640;
     int h = 480;
 
+    int w2 = (w+1)/2;
+    int h2 = (h+1)/2;
+
     vgrabber_t* grabber = grabber_new (x, y, w, h);
     vdisplay_t* display = display_new (w, h);
     vtime_t* time = time_new ();
@@ -94,7 +99,12 @@ int __cdecl main (int argc, char** argv)
 
     int raw_size = grabber_buffer_size (grabber);
     void* pixels = malloc (raw_size);
+    int yuv_size = w*h + 2*w2*h2;
+
+    void* yuv = malloc (yuv_size);
     void* encoded = malloc (raw_size);
+
+
 
     double curr_dt = 0.;
     double time_balance = 0.;
@@ -126,7 +136,13 @@ int __cdecl main (int argc, char** argv)
         display_update (display, pixels);
         display_draw (display);
 
-        file_write (file, pixels, raw_size);
+        RGBAToI420 (pixels, w*4,
+            (uint8*)yuv,           w,
+            (uint8*)yuv+w*h,       w2,
+            (uint8*)yuv+w*h+w2*h2, w2,
+            w, h);
+
+        file_write (file, yuv, yuv_size);
 
         #if 0
         encoder_x264_encode (encoder, pixels, encoded);
@@ -155,6 +171,7 @@ int __cdecl main (int argc, char** argv)
     fprintf (stdout, "shutting down\n");
 
     free (pixels);
+    free (yuv);
     free (encoded);
 
     file_destroy (&file);

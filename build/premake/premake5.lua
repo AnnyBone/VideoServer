@@ -8,6 +8,7 @@ workspace "videosrv"
     ffmpeg_dir = path.join(foreign_dir, "ffmpeg-20160330-git-be746ae-win64-dev")
     sdl_dir = path.join(foreign_dir, "SDL2-2.0.4")
     x264_dir = path.join(foreign_dir, "x264-snapshot-20160506-2245-stable")
+    yuv_dir = path.join(foreign_dir, "libyuv-07cb92272f393f91f8d6215633fbbaa04bbf0a1f")
 
     configurations { "Debug", "Release" }
     platforms { "x64" }
@@ -26,18 +27,20 @@ project "videosrv"
     targetdir(my_targetdir)
     debugdir(my_targetdir)
 
-    links { "winmm.lib", "sdl2.lib", "libx264-148.lib" }
+    links { "winmm.lib", "sdl2.lib", "libx264-148.lib", "yuv.lib" }
 
     includedirs {
         src_dir,
         path.join(ffmpeg_dir, "include"),
         path.join(sdl_dir, "include"),
-        x264_dir
+        x264_dir,
+        path.join(yuv_dir, "include")
     }
     libdirs {
         path.join(ffmpeg_dir, "lib"),
         path.join(sdl_dir, "lib/%{cfg.platform}"),
-        x264_dir
+        x264_dir,
+        path.join(yuv_dir, "cmake-build/Release")
     }
 
     filter "configurations:Debug"
