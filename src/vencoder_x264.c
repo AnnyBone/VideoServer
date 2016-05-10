@@ -24,9 +24,9 @@ vencoder_x264_t* encoder_x264_new (int w, int h)
         self->param.i_height = h;
         self->param.b_vfr_input = 0;
         self->param.b_repeat_headers = 1;
-        self->param.b_annexb = true;
+        self->param.b_annexb = 1;
 
-        if (x264_param_apply_profile (&self->param, "high444") < 0) {
+        if (x264_param_apply_profile (&self->param, "high") < 0) {
             encoder_x264_destroy (&self);
             return 0;
         }
@@ -66,10 +66,10 @@ int encoder_x264_encode (vencoder_x264_t* self,
     int luma_size = self->w * self->h;
     int chroma_size = luma_size/4;
 
-    void* ptr = buffer_yuv;
-    memcpy (&self->pic.img.plane [0], ptr, luma_size);   ((char*) ptr) += luma_size;
-    memcpy (&self->pic.img.plane [1], ptr, chroma_size); ((char*) ptr) += chroma_size;
-    memcpy (&self->pic.img.plane [2], ptr, chroma_size);
+    uint8_t* ptr = (uint8_t*)buffer_yuv;
+    memcpy (&self->pic.img.plane [0], ptr, luma_size);
+    memcpy (&self->pic.img.plane [1], ptr+luma_size, chroma_size);
+    memcpy (&self->pic.img.plane [2], ptr+luma_size+chroma_size, chroma_size);
 
     self->pic.i_pts = self->frame;
 
