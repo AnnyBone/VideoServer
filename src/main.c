@@ -15,6 +15,7 @@
 #include <vgrabber.h>
 #include <vdisplay.h>
 #include <vtime.h>
+#include <vfile.h>
 #include <vencoder_x264.h>
 
 bool should_stop = false;
@@ -81,6 +82,7 @@ int __cdecl main (int argc, char** argv)
     vdisplay_t* display = display_new (w, h);
     vtime_t* time = time_new ();
     vclock_t* clk = clock_new ();
+    vfile_t* file = file_new ("output.raw", "w+b");
     vencoder_x264_t* encoder = encoder_x264_new (w, h);
 
     SDL_Event event;
@@ -89,8 +91,9 @@ int __cdecl main (int argc, char** argv)
     #define debug_info_len 50
     char debug_info[debug_info_len];
 
-    void* pixels = malloc (grabber_buffer_size (grabber));
-    void* encoded = malloc (grabber_buffer_size (grabber));
+    int raw_size = grabber_buffer_size (grabber);
+    void* pixels = malloc (raw_size);
+    void* encoded = malloc (raw_size);
 
     double curr_dt = 0.;
     double time_balance = 0.;
@@ -122,7 +125,11 @@ int __cdecl main (int argc, char** argv)
         display_update (display, pixels);
         display_draw (display);
 
+        file_write (file, pixels, raw_size);
+
+        #if 0
         encoder_x264_encode (encoder, pixels, encoded);
+        #endif
 
         SDL_PollEvent (&event);
 
@@ -149,6 +156,7 @@ int __cdecl main (int argc, char** argv)
     free (pixels);
     free (encoded);
 
+    file_destroy (&file);
     encoder_x264_destroy (&encoder);
     clock_destroy (&clk);
     time_destroy (&time);
