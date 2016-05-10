@@ -20,6 +20,7 @@ project "videosrv"
     language "C"
 
     flags { "FatalWarnings", "Symbols" }
+    defines { "_CRT_SECURE_NO_WARNINGS" }
 
     my_targetdir = path.join(root_dir, "bin/" .. _ACTION .. "/%{cfg.buildcfg}")
     targetdir(my_targetdir)
