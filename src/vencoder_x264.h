@@ -2,10 +2,6 @@
 #define VENCODER_X264
 
 #include <stdint.h>
-
-#ifdef __POCC__
-#pragma warn(disable: 2135)
-#endif
 #include <x264.h>
 
 
