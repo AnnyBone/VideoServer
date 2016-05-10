@@ -69,7 +69,7 @@ project "videosrv"
         path.join(ffmpeg_dir, "lib"),
         path.join(sdl_dir, "lib/%{cfg.platform}"),
         x264_dir,
-        path.join(yuv_dir, "cmake-build/%{cfg.platform}")
+        path.join(yuv_dir, "cmake-build/%{cfg.buildcfg}")
     }
 
     filter "configurations:Debug"
