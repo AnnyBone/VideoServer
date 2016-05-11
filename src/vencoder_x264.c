@@ -73,7 +73,7 @@ int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba,
 
     if (buffer_rgba) {
         int w2 = (self->w+1)/2;
-        if (RGBAToI420 (buffer_rgba, self->w*4,
+        if (ARGBToI420 (buffer_rgba, self->w*4,
             self->pic.img.plane [0], self->w,
             self->pic.img.plane [1], w2,
             self->pic.img.plane [2], w2,
