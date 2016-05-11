@@ -88,7 +88,7 @@ int __cdecl main (int argc, char** argv)
     vtime_t* time = time_new ();
     vclock_t* clk = clock_new ();
     vfile_t* file = file_new ("output.raw", "w+b");
-    vencoder_x264_t* encoder = encoder_x264_new (w, h);
+    vencoder_x264_t* encoder = encoder_x264_new (w, h, fps);
 
     SDL_Event event;
 

@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <libyuv.h>
 
-vencoder_x264_t* encoder_x264_new (int w, int h)
+vencoder_x264_t* encoder_x264_new (int w, int h, int fps)
 {
     vencoder_x264_t* self = (vencoder_x264_t*) malloc (sizeof (vencoder_x264_t));
     if (self) {
@@ -25,6 +25,7 @@ vencoder_x264_t* encoder_x264_new (int w, int h)
         self->param.i_csp = X264_CSP_I420;
         self->param.i_width = w;
         self->param.i_height = h;
+        self->param.i_fps_num = fps;
         self->param.b_vfr_input = 0;
         self->param.b_repeat_headers = 1;
         self->param.b_annexb = 1;
