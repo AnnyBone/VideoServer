@@ -129,9 +129,7 @@ int __cdecl main (int argc, char** argv)
         display_update (display, pixels);
         display_draw (display);
 
-
-        int encoded_size = encoder_x264_encode (encoder, pixels);
-        fprintf (stdout, "encoded_size=%d\n", encoded_size);
+        int encoded_size = encoder_x264_encode (encoder, pixels, frame_number);
         if (encoded_size > 0)
             file_write (file, encoder_x264_frame (encoder), encoded_size);
 
@@ -157,13 +155,12 @@ int __cdecl main (int argc, char** argv)
 
     while (encoder_x264_has_delayed_frames (encoder))
     {
-        int encoded_size = encoder_x264_encode (encoder, 0);
+        int encoded_size = encoder_x264_encode (encoder, 0, 0);
         if (encoded_size > 0)
             file_write (file, encoder_x264_frame (encoder), encoded_size);
     }
 
     fprintf (stdout, "shutting down\n");
-
     free (pixels);
 
     file_destroy (&file);

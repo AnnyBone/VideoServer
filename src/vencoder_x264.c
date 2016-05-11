@@ -65,7 +65,8 @@ void encoder_x264_destroy (vencoder_x264_t** pself)
     }
 }
 
-int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba)
+int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba,
+    int frame_number)
 {
     assert (self);
 
@@ -78,11 +79,7 @@ int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba)
             self->w, self->h) < 0)
             return -1;
 
-        self->pic.i_pts = self->frame;
-
-        // TODO consider manage externally
-        ++self->frame;
-
+        self->pic.i_pts = frame_number;
         return x264_encoder_encode (self->handle, &self->nal,
             &self->inal, &self->pic, &self->pic_out);
     }

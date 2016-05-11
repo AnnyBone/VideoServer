@@ -23,7 +23,7 @@ typedef struct vencoder_x264_s vencoder_x264_t;
 vencoder_x264_t* encoder_x264_new (int w, int h);
 void encoder_x264_destroy (vencoder_x264_t** pself);
 
-int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba);
+int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba, int frame_number);
 void* encoder_x264_frame (vencoder_x264_t* self);
 
 bool encoder_x264_has_delayed_frames (vencoder_x264_t* self);
