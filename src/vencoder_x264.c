@@ -5,16 +5,19 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <libyuv.h>
 
 vencoder_x264_t* encoder_x264_new (int w, int h)
 {
     vencoder_x264_t* self = (vencoder_x264_t*) malloc (sizeof (vencoder_x264_t));
     if (self) {
         memset (self, 0, sizeof (vencoder_x264_t));
+
         self->w = w;
         self->h = h;
+        fprintf (stdout, "size=%dx%d\n", self->w, self->h);
 
-        if (x264_param_default_preset (&self->param, "medium", 0) < 0) {
+        if (x264_param_default_preset (&self->param, "medium", "zerolatency") < 0) {
             encoder_x264_destroy (&self);
             return 0;
         }
@@ -42,6 +45,9 @@ vencoder_x264_t* encoder_x264_new (int w, int h)
             encoder_x264_destroy (&self);
             return 0;
         }
+
+        fprintf (stdout, "max delayed frames=%d\n",
+            x264_encoder_maximum_delayed_frames (self->handle));
     }
     return self;
 }
@@ -59,28 +65,47 @@ void encoder_x264_destroy (vencoder_x264_t** pself)
     }
 }
 
-int encoder_x264_encode (vencoder_x264_t* self,
-        void* buffer_yuv, void* buffer_h264)
+int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba)
 {
     assert (self);
-    int luma_size = self->w * self->h;
-    int chroma_size = luma_size/4;
 
-    uint8_t* ptr = (uint8_t*)buffer_yuv;
-    memcpy (&self->pic.img.plane [0], ptr, luma_size);
-    memcpy (&self->pic.img.plane [1], ptr+luma_size, chroma_size);
-    memcpy (&self->pic.img.plane [2], ptr+luma_size+chroma_size, chroma_size);
+    if (buffer_rgba) {
+        int w2 = (self->w+1)/2;
+        if (RGBAToI420 (buffer_rgba, self->w*4,
+            self->pic.img.plane [0], self->w,
+            self->pic.img.plane [1], w2,
+            self->pic.img.plane [2], w2,
+            self->w, self->h) < 0)
+            return -1;
 
-    self->pic.i_pts = self->frame;
+        self->pic.i_pts = self->frame;
 
-    // TODO consider manage externally
-    ++self->frame;
+        // TODO consider manage externally
+        ++self->frame;
 
-    int frame_size = x264_encoder_encode (self->handle, &self->nal, &self->inal,
-            &self->pic, &self->pic_out);
+        return x264_encoder_encode (self->handle, &self->nal,
+            &self->inal, &self->pic, &self->pic_out);
+    }
+    else {
+        return x264_encoder_encode (self->handle, &self->nal,
+            &self->inal, 0, &self->pic_out);
+    }
 
-    fprintf (stdout, "frame_size=%d\n", frame_size);
 
-    memcpy (buffer_h264, &self->nal->p_payload, frame_size);
-    return frame_size;
 }
+
+void* encoder_x264_frame (vencoder_x264_t* self)
+{
+    assert (self);
+    if (!self->nal)
+        return 0;
+
+    return self->nal->p_payload;
+}
+
+bool encoder_x264_has_delayed_frames (vencoder_x264_t* self)
+{
+    assert (self);
+    return x264_encoder_delayed_frames (self->handle);
+}
+

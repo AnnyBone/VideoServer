@@ -2,8 +2,8 @@
 #define VENCODER_X264
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <x264.h>
-
 
 struct vencoder_x264_s
 {
@@ -23,11 +23,9 @@ typedef struct vencoder_x264_s vencoder_x264_t;
 vencoder_x264_t* encoder_x264_new (int w, int h);
 void encoder_x264_destroy (vencoder_x264_t** pself);
 
-int encoder_x264_encode (vencoder_x264_t* self, void* buffer_yuv,
-        void* buffer_h264);
+int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba);
+void* encoder_x264_frame (vencoder_x264_t* self);
 
-#if 0
-void encoder_x264_decode (vencoder_x264_t* self, void* buffer_h264,
-        void* buffer_yuv);
-#endif
+bool encoder_x264_has_delayed_frames (vencoder_x264_t* self);
+
 #endif

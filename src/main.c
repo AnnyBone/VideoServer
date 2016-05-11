@@ -19,7 +19,6 @@
 #include <vfile.h>
 #include <vencoder_x264.h>
 
-#include <libyuv.h>
 
 bool should_stop = false;
 HANDLE shutdown_ev;
@@ -99,19 +98,13 @@ int __cdecl main (int argc, char** argv)
 
     int raw_size = grabber_buffer_size (grabber);
     void* pixels = malloc (raw_size);
-    int yuv_size = w*h + 2*w2*h2;
-
-    void* yuv = malloc (yuv_size);
-    void* encoded = malloc (raw_size);
-
-
 
     double curr_dt = 0.;
     double time_balance = 0.;
     SYSTEMTIME st;
 
     int frame_number = 0;
-    const int max_frame_number = 256;
+    const int max_frame_number = 250;
 
     while (!should_stop) {
         char cmd = _kbhit()? _getch() : 0;
@@ -136,17 +129,11 @@ int __cdecl main (int argc, char** argv)
         display_update (display, pixels);
         display_draw (display);
 
-        RGBAToI420 (pixels, w*4,
-            (uint8*)yuv,           w,
-            (uint8*)yuv+w*h,       w2,
-            (uint8*)yuv+w*h+w2*h2, w2,
-            w, h);
 
-        file_write (file, yuv, yuv_size);
-
-        #if 0
-        encoder_x264_encode (encoder, pixels, encoded);
-        #endif
+        int encoded_size = encoder_x264_encode (encoder, pixels);
+        fprintf (stdout, "encoded_size=%d\n", encoded_size);
+        if (encoded_size > 0)
+            file_write (file, encoder_x264_frame (encoder), encoded_size);
 
         SDL_PollEvent (&event);
 
@@ -168,11 +155,16 @@ int __cdecl main (int argc, char** argv)
         time_balance -= actual_wait;
     }
 
+    while (encoder_x264_has_delayed_frames (encoder))
+    {
+        int encoded_size = encoder_x264_encode (encoder, 0);
+        if (encoded_size > 0)
+            file_write (file, encoder_x264_frame (encoder), encoded_size);
+    }
+
     fprintf (stdout, "shutting down\n");
 
     free (pixels);
-    free (yuv);
-    free (encoded);
 
     file_destroy (&file);
     encoder_x264_destroy (&encoder);
