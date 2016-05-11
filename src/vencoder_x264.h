@@ -13,7 +13,6 @@ struct vencoder_x264_s
     x264_nal_t* nal;
 
     int w, h;
-    int frame;
     int inal;
 };
 
