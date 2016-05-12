@@ -95,7 +95,7 @@ int __cdecl main (int argc, char** argv)
     vclock_t* clk = clock_new ();
 
     const char* output_filename = ot == rgba? "output.raw" :
-        yuv? "output.i420" : "output.h264";
+        ot == yuv? "output.i420" : "output.h264";
     vfile_t* file = file_new (output_filename, "w+b");
     vencoder_x264_t* encoder = encoder_x264_new (w, h, fps);
 
