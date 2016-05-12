@@ -17,7 +17,7 @@ vencoder_x264_t* encoder_x264_new (int w, int h, int fps)
         self->h = h;
         fprintf (stdout, "size=%dx%d\n", self->w, self->h);
 
-        if (x264_param_default_preset (&self->param, "medium", "zerolatency") < 0) {
+        if (x264_param_default_preset (&self->param, "veryslow", "zerolatency") < 0) {
             encoder_x264_destroy (&self);
             return 0;
         }
@@ -29,6 +29,7 @@ vencoder_x264_t* encoder_x264_new (int w, int h, int fps)
         self->param.b_vfr_input = 0;
         self->param.b_repeat_headers = 1;
         self->param.b_annexb = 1;
+        self->param.b_opencl = 1;
 
         if (x264_picture_alloc (&self->pic, self->param.i_csp,
                     self->param.i_width, self->param.i_height) < 0) {
