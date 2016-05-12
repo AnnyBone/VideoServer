@@ -17,6 +17,7 @@
 #include <vdisplay.h>
 #include <vtime.h>
 #include <vfile.h>
+#include <vformat_yuv.h>
 #include <vencoder_x264.h>
 
 
@@ -83,11 +84,19 @@ int __cdecl main (int argc, char** argv)
     int w2 = (w+1)/2;
     int h2 = (h+1)/2;
 
+    enum output_type_e { rgba = 0, yuv, h264 };
+    typedef enum output_type_e output_type;
+
+    output_type ot = yuv;
+
     vgrabber_t* grabber = grabber_new (x, y, w, h);
     vdisplay_t* display = display_new (w, h);
     vtime_t* time = time_new ();
     vclock_t* clk = clock_new ();
-    vfile_t* file = file_new ("output.h264", "w+b");
+
+    const char* output_filename = ot == rgba? "output.raw" :
+        yuv? "output.i420" : "output.h264";
+    vfile_t* file = file_new (output_filename, "w+b");
     vencoder_x264_t* encoder = encoder_x264_new (w, h, fps);
 
     SDL_Event event;
@@ -98,6 +107,9 @@ int __cdecl main (int argc, char** argv)
 
     int raw_size = grabber_buffer_size (grabber);
     void* pixels = malloc (raw_size);
+
+    int i420_size = w*h + 2*w2*h2;
+    void* i420 = malloc (i420_size);
 
     double curr_dt = 0.;
     double time_balance = 0.;
@@ -129,9 +141,21 @@ int __cdecl main (int argc, char** argv)
         display_update (display, pixels);
         display_draw (display);
 
-        int encoded_size = encoder_x264_encode (encoder, pixels, frame_number);
-        if (encoded_size > 0)
-            file_write (file, encoder_x264_frame (encoder), encoded_size);
+        int encoded_size;
+        switch (ot) {
+            case rgba:
+                file_write (file, pixels, raw_size);
+                break;
+            case yuv:
+                format_rgba_to_i420 (pixels, w, h, i420);
+                break;
+
+            case h264:
+                encoded_size = encoder_x264_encode (encoder, pixels, frame_number);
+                if (encoded_size > 0)
+                    file_write (file, encoder_x264_frame (encoder), encoded_size);
+                break;
+        }
 
         SDL_PollEvent (&event);
 
@@ -153,15 +177,18 @@ int __cdecl main (int argc, char** argv)
         time_balance -= actual_wait;
     }
 
-    while (encoder_x264_has_delayed_frames (encoder))
-    {
-        int encoded_size = encoder_x264_encode (encoder, 0, 0);
-        if (encoded_size > 0)
-            file_write (file, encoder_x264_frame (encoder), encoded_size);
+    if (ot == h264) {
+        while (encoder_x264_has_delayed_frames (encoder))
+        {
+            int encoded_size = encoder_x264_encode (encoder, 0, 0);
+            if (encoded_size > 0)
+                file_write (file, encoder_x264_frame (encoder), encoded_size);
+        }
     }
 
     fprintf (stdout, "shutting down\n");
     free (pixels);
+    free (i420);
 
     file_destroy (&file);
     encoder_x264_destroy (&encoder);
