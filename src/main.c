@@ -148,6 +148,7 @@ int __cdecl main (int argc, char** argv)
                 break;
             case yuv:
                 format_rgba_to_i420 (pixels, w, h, i420);
+                file_write (file, i420, i420_size);
                 break;
 
             case h264:
