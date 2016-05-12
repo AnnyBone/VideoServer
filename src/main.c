@@ -19,6 +19,7 @@
 #include <vfile.h>
 #include <vformat_yuv.h>
 #include <vencoder_x264.h>
+#include <vencoder_vpx.h>
 
 
 bool should_stop = false;
@@ -84,7 +85,7 @@ int __cdecl main (int argc, char** argv)
     int w2 = (w+1)/2;
     int h2 = (h+1)/2;
 
-    enum output_type_e { rgba = 0, yuv, h264 };
+    enum output_type_e { rgba = 0, yuv, h264, vp9 };
     typedef enum output_type_e output_type;
 
     output_type ot = yuv;
@@ -97,7 +98,8 @@ int __cdecl main (int argc, char** argv)
     const char* output_filename = ot == rgba? "output.raw" :
         ot == yuv? "output.i420" : "output.h264";
     vfile_t* file = file_new (output_filename, "w+b");
-    vencoder_x264_t* encoder = encoder_x264_new (w, h, fps);
+    vencoder_x264_t* encoder_x264 = encoder_x264_new (w, h, fps);
+    vencoder_vpx_t* encoder_vpx = encoder_vpx_new (w, h, fps);
 
     SDL_Event event;
 
@@ -152,9 +154,13 @@ int __cdecl main (int argc, char** argv)
                 break;
 
             case h264:
-                encoded_size = encoder_x264_encode (encoder, pixels, frame_number);
+                encoded_size = encoder_x264_encode (encoder_x264, pixels, frame_number);
                 if (encoded_size > 0)
-                    file_write (file, encoder_x264_frame (encoder), encoded_size);
+                    file_write (file, encoder_x264_frame (encoder_x264), encoded_size);
+                break;
+
+            case vp9:
+                encoded_size = encoder_vpx_encode (encoder_vpx, pixels, frame_number);
                 break;
         }
 
@@ -179,11 +185,11 @@ int __cdecl main (int argc, char** argv)
     }
 
     if (ot == h264) {
-        while (encoder_x264_has_delayed_frames (encoder))
+        while (encoder_x264_has_delayed_frames (encoder_x264))
         {
-            int encoded_size = encoder_x264_encode (encoder, 0, 0);
+            int encoded_size = encoder_x264_encode (encoder_x264, 0, 0);
             if (encoded_size > 0)
-                file_write (file, encoder_x264_frame (encoder), encoded_size);
+                file_write (file, encoder_x264_frame (encoder_x264), encoded_size);
         }
     }
 
@@ -192,7 +198,8 @@ int __cdecl main (int argc, char** argv)
     free (i420);
 
     file_destroy (&file);
-    encoder_x264_destroy (&encoder);
+    encoder_x264_destroy (&encoder_x264);
+    encoder_vpx_destroy (&encoder_vpx);
     clock_destroy (&clk);
     time_destroy (&time);
     display_destroy (&display);

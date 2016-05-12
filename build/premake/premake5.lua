@@ -10,6 +10,7 @@ workspace "videosrv"
     sdl_dir = path.join(foreign_dir, "SDL2-2.0.4")
     x264_dir = path.join(foreign_dir, "x264-snapshot-20160506-2245-stable")
     yuv_dir = path.join(foreign_dir, "libyuv-07cb92272f393f91f8d6215633fbbaa04bbf0a1f")
+    vpx_dir = path.join(foreign_dir, "libvpx-1.5.0")
 
     configurations { "Debug", "Release" }
     platforms { "x64" }
@@ -64,19 +65,23 @@ project "videosrv"
         path.join(ffmpeg_dir, "include"),
         path.join(sdl_dir, "include"),
         x264_dir,
-        path.join(yuv_dir, "include")
+        path.join(yuv_dir, "include"),
+        vpx_dir
     }
     libdirs {
         path.join(ffmpeg_dir, "lib"),
         path.join(sdl_dir, "lib/%{cfg.platform}"),
         x264_dir,
-        path.join(yuv_dir, "cmake-build/%{cfg.buildcfg}")
+        path.join(yuv_dir, "cmake-build/%{cfg.buildcfg}"),
+        path.join(vpx_dir, "build/x64/%{cfg.buildcfg}")
     }
 
     filter "configurations:Debug"
+        links { "vpxmdd.lib" }
         defines { "DEBUG" }
 
     filter "configurations:Release"
+        links { "vpxmd.lib" }
         defines { "NDEBUG" }
         optimize "On"
 
