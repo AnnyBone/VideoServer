@@ -84,8 +84,6 @@ int encoder_x264_encode (vencoder_x264_t* self, void* buffer_rgba,
         return x264_encoder_encode (self->handle, &self->nal,
             &self->inal, 0, &self->pic_out);
     }
-
-
 }
 
 void* encoder_x264_frame (vencoder_x264_t* self)
