@@ -40,7 +40,9 @@ vencoder_vpx_t* encoder_vpx_new (int w, int h, int fps)
         self->cfg.g_h = self->h;
         self->cfg.g_timebase.num = 1;
         self->cfg.g_timebase.den = fps;
-        self->cfg.rc_target_bitrate = 200;      // TODO
+        self->cfg.g_lag_in_frames = 0;
+        self->cfg.rc_end_usage = VPX_CBR;
+        self->cfg.rc_target_bitrate = 500;
 
         rc = vpx_codec_enc_init (&self->codec, self->codec_iface,
                 &self->cfg, 0);
@@ -49,6 +51,8 @@ vencoder_vpx_t* encoder_vpx_new (int w, int h, int fps)
             encoder_vpx_destroy (&self);
             return 0;
         }
+
+        vpx_codec_control(&self->codec, VP8E_SET_CPUUSED, 5);
     }
 
     return self;
