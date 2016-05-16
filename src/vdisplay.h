@@ -2,6 +2,7 @@
 #define VDISPLAY_H
 
 #define SDL_MAIN_HANDLED
+#include <stdint.h>
 #include <SDL.h>
 
 struct vdisplay_s
