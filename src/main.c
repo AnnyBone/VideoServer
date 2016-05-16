@@ -167,6 +167,8 @@ int __cdecl main (int argc, char** argv)
 
             case vp9:
                 encoded_size = encoder_vpx_encode (encoder_vpx, pixels, frame_number);
+                if (encoded_size > 0)
+                    file_write (file, encoder_vpx_frame (encoder_vpx), encoded_size);
                 break;
         }
 
@@ -191,11 +193,21 @@ int __cdecl main (int argc, char** argv)
     }
 
     if (ot == h264) {
-        while (encoder_x264_has_delayed_frames (encoder_x264))
-        {
-            int encoded_size = encoder_x264_encode (encoder_x264, 0, 0);
-            if (encoded_size > 0)
-                file_write (file, encoder_x264_frame (encoder_x264), encoded_size);
+        for (;;) {
+            int encoded_size = encoder_x264_encode (encoder_x264, 0, -1);
+            if (encoded_size == 0)
+                break;
+
+            file_write (file, encoder_x264_frame (encoder_x264), encoded_size);
+        }
+    }
+    else if (ot == vp9) {
+        for (;;) {
+            int encoded_size = encoder_vpx_encode (encoder_vpx, 0, -1);
+            if (encoded_size == 0)
+                break;
+
+            file_write (file, encoder_vpx_frame (encoder_vpx), encoded_size); 
         }
     }
 

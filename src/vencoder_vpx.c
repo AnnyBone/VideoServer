@@ -75,23 +75,52 @@ int encoder_vpx_encode (vencoder_vpx_t* self, void* buffer_rgba,
 {
     assert (self);
 
-    int w2 = (self->w+1)/2;
-    if (ARGBToI420 (buffer_rgba, self->w*4,
-        self->raw.planes [0], self->w,
-        self->raw.planes [1], w2,
-        self->raw.planes [2], w2,
-        self->w, self->h) < 0)
-        return -1;
-
     int flags = 0;
-
+    unsigned long duration = 1;
     vpx_codec_err_t rc;
-    rc = vpx_codec_encode (&self->codec, &self->raw, frame_number, 1, flags,
+
+    if (buffer_rgba) {
+        int w2 = (self->w+1)/2;
+        if (ARGBToI420 (buffer_rgba, self->w*4,
+            self->raw.planes [0], self->w,
+            self->raw.planes [1], w2,
+            self->raw.planes [2], w2,
+            self->w, self->h) < 0)
+            return -1;
+
+        rc = vpx_codec_encode (&self->codec, &self->raw, frame_number,
+            duration, flags, VPX_DL_REALTIME);
+    }
+    else {
+        rc = vpx_codec_encode (&self->codec, 0, -1, duration, flags,
             VPX_DL_REALTIME);
+    }
 
-    if (rc != VPX_CODEC_OK)
+    if (rc != VPX_CODEC_OK) {
+        fprintf (stderr, "vpx_codec_encode() failed, message=%s\n",
+            vpx_codec_err_to_string (rc));
         return -1;
+    }
 
-    // TODO
-    return 0;
+    for(;;) {
+        self->pkt = vpx_codec_get_cx_data (&self->codec, &self->iter);
+
+        // no more data available
+        if (!self->pkt)
+            return 0;
+
+        // discard non-frames
+        if(self->pkt->kind == VPX_CODEC_CX_FRAME_PKT)
+            break;
+    }
+
+    return (int)self->pkt->data.frame.sz;
+}
+
+void* encoder_vpx_frame (vencoder_vpx_t* self)
+{
+    assert (self);
+
+    // currently assume a packet per frame
+    return self->pkt? self->pkt->data.frame.buf : 0;
 }
