@@ -60,6 +60,8 @@ double fw(double x, size_t n, size_t k)
 }
 
 #define fw41(x) fw(x,4,1)
+#define fw51(x) fw(x,5,1)
+#define fw61(x) fw(x,6,1)
 
 int __cdecl main (int argc, char** argv)
 {
@@ -88,15 +90,19 @@ int __cdecl main (int argc, char** argv)
     enum output_type_e { rgba = 0, yuv, h264, vp9 };
     typedef enum output_type_e output_type;
 
-    output_type ot = yuv;
+    output_type ot = vp9;
 
     vgrabber_t* grabber = grabber_new (x, y, w, h);
     vdisplay_t* display = display_new (w, h);
     vtime_t* time = time_new ();
     vclock_t* clk = clock_new ();
 
-    const char* output_filename = ot == rgba? "output.raw" :
-        ot == yuv? "output.i420" : "output.h264";
+    const char* output_filename =
+        ot == rgba? "output.raw" :
+        ot == yuv? "output.i420" :
+        ot == vp9? "output.vp9" :
+            "output.h264";
+
     vfile_t* file = file_new (output_filename, "w+b");
     vencoder_x264_t* encoder_x264 = encoder_x264_new (w, h, fps);
     vencoder_vpx_t* encoder_vpx = encoder_vpx_new (w, h, fps);
@@ -131,8 +137,8 @@ int __cdecl main (int argc, char** argv)
             double now = clock_now (clk);
             time_as_systemtime (now, &st);
             snprintf (debug_info, debug_info_len,
-                "%04.1f %04.1f " TIME_STR_FORMAT " %05d",
-                fw41(curr_dt), fw41(-time_balance),
+                "%05.1f %05.1f " TIME_STR_FORMAT " %05d",
+                fw51(curr_dt), fw51(-time_balance),
                 st.wHour ,st.wMinute, st.wSecond, st.wMilliseconds,
                 frame_number);
             grabber_embed_str (grabber, debug_info);
