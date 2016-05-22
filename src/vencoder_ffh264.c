@@ -2,6 +2,7 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/opt.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,11 +34,14 @@ vencoder_ffh264_t* encoder_ffh264_new (int w, int h, int fps)
 
         // avcontext
         self->ctx = avcodec_alloc_context3 (self->codec);
-        self->ctx->bit_rate = 400000;
+        self->ctx->bit_rate = 500000;
         self->ctx->width = w;
         self->ctx->height = h;
         self->ctx->time_base = (AVRational) {1,fps};
         self->ctx->pix_fmt = AV_PIX_FMT_YUV420P;
+
+        av_opt_set (self->ctx->priv_data, "preset", "fast", 0);
+        av_opt_set (self->ctx->priv_data, "tune", "zerolatency", 0);
 
         avcodec_open2 (self->ctx, self->codec, 0);
 
@@ -79,7 +83,11 @@ void encoder_ffh264_destroy (vencoder_ffh264_t** pself)
     vencoder_ffh264_t* self = *pself;
     if (self) {
         avcodec_close (self->ctx);
-        // TODO complete destruction
+        av_freep (&self->ctx);
+        av_freep (&self->frame->data[0]);
+        av_frame_free (&self->frame);
+        av_packet_unref (&self->pkt);
+        sws_freeContext (self->sws);
     }
 }
 
@@ -102,10 +110,12 @@ int encoder_ffh264_encode (vencoder_ffh264_t* self, void* buffer_rgba,
         sws_scale (self->sws, src_slice, src_stride, 0,
                 self->h, self->frame->data, self->frame->linesize);
 
+        // clear packet
         av_init_packet (&self->pkt);
         self->pkt.data = 0;
         self->pkt.size = 0;
 
+        // set pts
         self->frame->pts = frame_number;
 
         // encode
