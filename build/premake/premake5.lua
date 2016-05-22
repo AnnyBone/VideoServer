@@ -58,7 +58,8 @@ project "videosrv"
     targetdir(my_targetdir)
     debugdir(my_targetdir)
 
-    links { "winmm.lib", "sdl2.lib", "libx264-148.lib", "yuv.lib" }
+    links { "winmm.lib", "sdl2.lib", "libx264-148.lib", "yuv.lib",
+        "avcodec.lib", "avutil.lib", "swscale.lib" }
 
     includedirs {
         src_dir,

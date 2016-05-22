@@ -13,6 +13,8 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
+#include <libavcodec/avcodec.h>
+
 #include <vgrabber.h>
 #include <vdisplay.h>
 #include <vtime.h>
@@ -20,6 +22,7 @@
 #include <vformat_yuv.h>
 #include <vencoder_x264.h>
 #include <vencoder_vpx.h>
+#include <vencoder_ffh264.h>
 
 
 bool should_stop = false;
@@ -78,6 +81,9 @@ int __cdecl main (int argc, char** argv)
         return 1;
     }
 
+    // setup avcodec
+    avcodec_register_all ();
+
     int fps = 25;
     int x = 0;
     int y = 0;
@@ -87,10 +93,10 @@ int __cdecl main (int argc, char** argv)
     int w2 = (w+1)/2;
     int h2 = (h+1)/2;
 
-    enum output_type_e { rgba = 0, yuv, h264, vp9 };
+    enum output_type_e { rgba = 0, yuv, h264, vp9, ffh264 };
     typedef enum output_type_e output_type;
 
-    output_type ot = vp9;
+    output_type ot = ffh264;
 
     vgrabber_t* grabber = grabber_new (x, y, w, h);
     vdisplay_t* display = display_new (w, h);
@@ -106,6 +112,7 @@ int __cdecl main (int argc, char** argv)
     vfile_t* file = file_new (output_filename, "w+b");
     vencoder_x264_t* encoder_x264 = encoder_x264_new (w, h, fps);
     vencoder_vpx_t* encoder_vpx = encoder_vpx_new (w, h, fps);
+    vencoder_ffh264_t* encoder_ffh264 = encoder_ffh264_new (w, h, fps);
 
     SDL_Event event;
 
@@ -170,6 +177,12 @@ int __cdecl main (int argc, char** argv)
                 if (encoded_size > 0)
                     file_write (file, encoder_vpx_frame (encoder_vpx), encoded_size);
                 break;
+
+            case ffh264:
+                encoded_size = encoder_ffh264_encode (encoder_ffh264, pixels, frame_number);
+                if (encoded_size > 0)
+                    file_write (file, encoder_ffh264_frame (encoder_ffh264), encoded_size);
+                break;
         }
 
         SDL_PollEvent (&event);
@@ -208,6 +221,15 @@ int __cdecl main (int argc, char** argv)
                 break;
 
             file_write (file, encoder_vpx_frame (encoder_vpx), encoded_size); 
+        }
+    }
+    else if (ot == ffh264) {
+        for (;;) {
+            int encoded_size = encoder_ffh264_encode (encoder_ffh264, 0, -1);
+            if (encoded_size == 0)
+                break;
+
+            file_write (file, encoder_ffh264_frame (encoder_ffh264), encoded_size);
         }
     }
 
