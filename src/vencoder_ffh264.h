@@ -1,5 +1,5 @@
-#ifndef VENCODER_FFH264
-#define VENCODER_FFH264
+#ifndef VENCODER_FFH264_H
+#define VENCODER_FFH264_H
 
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
