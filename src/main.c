@@ -13,7 +13,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 
 #include <vgrabber.h>
 #include <vdisplay.h>
@@ -23,6 +23,7 @@
 #include <vencoder_x264.h>
 #include <vencoder_vpx.h>
 #include <vencoder_ffh264.h>
+#include <vmuxer_mpeg.h>
 
 
 bool should_stop = false;
@@ -82,7 +83,7 @@ int __cdecl main (int argc, char** argv)
     }
 
     // setup avcodec
-    avcodec_register_all ();
+    av_register_all ();
 
     int fps = 25;
     int x = 0;
@@ -113,6 +114,7 @@ int __cdecl main (int argc, char** argv)
     vencoder_x264_t* encoder_x264 = encoder_x264_new (w, h, fps);
     vencoder_vpx_t* encoder_vpx = encoder_vpx_new (w, h, fps);
     vencoder_ffh264_t* encoder_ffh264 = encoder_ffh264_new (w, h, fps);
+    vmuxer_mpeg_t* muxer_mpeg = muxer_mpeg_new ("muxer.mp4", fps, encoder_ffh264->codec);
 
     SDL_Event event;
 
@@ -181,7 +183,7 @@ int __cdecl main (int argc, char** argv)
             case ffh264:
                 encoded_size = encoder_ffh264_encode (encoder_ffh264, pixels, frame_number);
                 if (encoded_size > 0)
-                    file_write (file, encoder_ffh264_frame (encoder_ffh264), encoded_size);
+                    muxer_mpeg_write_frame (muxer_mpeg, encoder_ffh264_frame (encoder_ffh264), encoded_size);
                 break;
         }
 
@@ -229,7 +231,7 @@ int __cdecl main (int argc, char** argv)
             if (encoded_size == 0)
                 break;
 
-            file_write (file, encoder_ffh264_frame (encoder_ffh264), encoded_size);
+            muxer_mpeg_write_frame (muxer_mpeg, encoder_ffh264_frame (encoder_ffh264), encoded_size);
         }
     }
 
@@ -238,6 +240,7 @@ int __cdecl main (int argc, char** argv)
     free (i420);
 
     file_destroy (&file);
+    muxer_mpeg_destroy (&muxer_mpeg);
     encoder_x264_destroy (&encoder_x264);
     encoder_vpx_destroy (&encoder_vpx);
     clock_destroy (&clk);

@@ -24,7 +24,7 @@ vencoder_ffh264_t* encoder_ffh264_new (int w, int h, int fps)
 
         int codec_id = AV_CODEC_ID_H264;
 
-        // avcodec
+        // get h264 codec by id
         self->codec = avcodec_find_encoder (codec_id);
         if (!self->codec) {
             fprintf (stderr, "codec not found, codec_id=%d\n", codec_id);
@@ -32,7 +32,7 @@ vencoder_ffh264_t* encoder_ffh264_new (int w, int h, int fps)
             return 0;
         }
 
-        // avcontext
+        // define encoding settings using codec context
         self->ctx = avcodec_alloc_context3 (self->codec);
         self->ctx->bit_rate = 500000;
         self->ctx->width = w;
@@ -43,6 +43,7 @@ vencoder_ffh264_t* encoder_ffh264_new (int w, int h, int fps)
         av_opt_set (self->ctx->priv_data, "preset", "fast", 0);
         av_opt_set (self->ctx->priv_data, "tune", "zerolatency", 0);
 
+        // open the codec
         avcodec_open2 (self->ctx, self->codec, 0);
 
         // avframe
